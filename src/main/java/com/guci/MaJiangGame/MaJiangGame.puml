@@ -1,0 +1,34 @@
+@startuml
+'https://plantuml.com/class-diagram
+left to right direction
+
+together {
+    class Game
+    class Player{
+        ActionList<MoPaiAction> 摸牌行为链
+        ActionList<HuPaiAction> 胡牌行为链
+        ActionList<KanPaiAction> 看牌行为链
+    }
+    Game o-- Player:拥有 4
+}
+together {
+    interface Action{
+        int do(int input)
+    }
+    note top :  抽象行为
+
+    interface ActionList{
+        int do(int input)
+    }
+    note top :行为链
+
+    ActionList *- Action
+    interface MoPaiAction
+    interface KanPaiAction
+    interface HuPaiAction
+    Action <|-- MoPaiAction
+    Action <|-- KanPaiAction
+    Action <|-- HuPaiAction
+}
+
+@enduml
