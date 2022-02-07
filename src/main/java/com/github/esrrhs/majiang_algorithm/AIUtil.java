@@ -9,6 +9,12 @@ import java.util.List;
  */
 public class AIUtil
 {
+	/**
+	 *  计算牌面价值
+	 * @param input
+	 * @param guiCard
+	 * @return
+	 */
 	public static double calc(List<Integer> input, List<Integer> guiCard)
 	{
 		List<Integer> cards = new ArrayList<>();
