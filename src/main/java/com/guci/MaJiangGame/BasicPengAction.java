@@ -33,5 +33,6 @@ public class BasicPengAction implements PengAction{
         temp.remove((Integer) input);
         temp.remove((Integer) input);
         return AIUtil.outAI(temp,gui);
+        //gggggg
     }
 }
