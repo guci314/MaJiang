@@ -32,6 +32,6 @@ public class BasicPengAction implements PengAction{
         List<Integer> temp=new ArrayList<>(me.cards);
         temp.remove((Integer) input);
         temp.remove((Integer) input);
-        return AIUtil.outAI(temp,gui);//oooo
+        return AIUtil.outAI(temp,gui);
     }
 }
