@@ -204,6 +204,7 @@ public class TestMatrix {
         matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
         matrix.players.get(1).cards=new ArrayList<>();
         matrix.players.get(1).cards.add(MaJiangDef.WAN2);
+        matrix.players.get(1).DingQue=HuaShe.TIAO;
         matrix.players.get(2).cards=new ArrayList<>();
         matrix.players.get(2).cards.add(MaJiangDef.WAN2);
         matrix.players.get(2).DingQue=HuaShe.TIAO;
