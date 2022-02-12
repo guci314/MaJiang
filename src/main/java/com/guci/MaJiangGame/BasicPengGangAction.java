@@ -13,6 +13,7 @@ public class BasicPengGangAction implements PengGangAction {
     List<Integer> gui = new ArrayList<>();
     @Override
     public ActionResult go(int input, Player me) {
+        if (me.status==Status.Hu) return new ActionResult(ResultCode.NoAction,null);
         if (me.isQue(input)) return new ActionResult(ResultCode.NoAction,null);
         if (Collections.frequency(me.cards,(Integer)input)==3){
             return gang(input,me);
@@ -44,6 +45,7 @@ public class BasicPengGangAction implements PengGangAction {
     }
 
     private ActionResult gang(int input,Player me){
+        if (me.matrix.cards.size()==0) return new ActionResult(ResultCode.NoAction,null);
         for (int i=0;i<3;i++){
             me.cards.remove((Integer) input);
             me.cardsOnTable.add((Integer) input);

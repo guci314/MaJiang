@@ -12,6 +12,7 @@ public class BasicDianPaoHuAction implements DianPaoHuAction {
     List<Integer> gui = new ArrayList<>();
     @Override
     public ActionResult go(int input, Player me) {
+        if (me.status==Status.Hu) return new ActionResult(ResultCode.NoAction,null);
         //检查是否已定缺
         if (!me.hasQue()) return new ActionResult(ResultCode.NoAction,null);
         //当前牌是否是定缺

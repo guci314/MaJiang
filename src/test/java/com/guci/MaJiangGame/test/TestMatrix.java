@@ -196,6 +196,7 @@ public class TestMatrix {
 
     @Test
     public void testPengGang(){
+        // TODO: 2022/2/13 测试级联碰牌杠牌
         Matrix matrix=new Matrix();
         matrix.init();
         matrix.reset();
@@ -396,6 +397,42 @@ public class TestMatrix {
                 MaJiangDef.stringToCard("9万")));
         Assert.assertEquals(1,matrix.cardsOnTable.size());
         Assert.assertTrue(matrix.cardsOnTable.contains((Integer) MaJiangDef.stringToCard("3条")));
+    }
+
+    /**
+     * 测试碰牌中胡牌
+     */
+    @Test
+    public void testPengHu(){
+        Matrix matrix=new Matrix();
+        matrix.init();
+        matrix.reset();
+        //摸1万 打出1万
+        String spai="1筒,1筒,3条,3条";
+        matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(0).DingQue=HuaShe.WAN;
+
+        //碰1万 打出3条,上家胡3条
+        spai="1万,1万,3条,3条";
+        matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(1).DingQue=HuaShe.TIAO;
+
+        spai="1条";
+        matrix.players.get(2).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(2).DingQue=HuaShe.TIAO;
+
+        spai="1条";
+        matrix.players.get(3).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(3).DingQue=HuaShe.TIAO;
+
+        matrix.currentPlayer=matrix.players.get(0);
+        matrix.cards=new ArrayList<>();
+        matrix.cards.add(MaJiangDef.stringToCard("1万"));
+        matrix.step();
+
+        Assert.assertEquals(3,Collections.frequency(matrix.players.get(1).cardsOnTable,
+                MaJiangDef.stringToCard("1万")));
+        Assert.assertEquals(Status.Hu,matrix.players.get(0).status);
     }
 
     @Test
