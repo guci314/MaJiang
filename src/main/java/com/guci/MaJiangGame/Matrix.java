@@ -2,8 +2,6 @@ package com.guci.MaJiangGame;
 
 import com.github.esrrhs.majiang_algorithm.AIUtil;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +17,7 @@ public class Matrix {
     /**
      * 已显的牌
      */
-    public List<Integer> cardsInTable;
+    public List<Integer> cardsOnTable;
     /**
      * 当前玩家
      */
@@ -53,10 +51,10 @@ public class Matrix {
 
     private void addBasicAction(Player p) {
         p.moPaiActionList.add(new DingQueMoPaiAction());
-        p.moPaiActionList.add(new IsolatingFirstStrategy());
+        p.moPaiActionList.add(new IsolatingMoPaiAction());
         p.moPaiActionList.add(new BasicMoPaiAction());
-        p.huPaiActionList.add(new BasicHuPaiAction());
-        p.pengActionList.add(new BasicPengAction());
+        p.dianPaoHuActionList.add(new BasicDianPaoHuAction());
+        p.pengGangActionList.add(new BasicPengGangAction());
         p.matrix=this;
         players.add(p);
     }
@@ -65,7 +63,7 @@ public class Matrix {
      * 重置
      */
     public void reset(){
-        cardsInTable=new ArrayList<>();
+        cardsOnTable =new ArrayList<>();
         cards=new ArrayList<>();
         for (int i = MaJiangDef.WAN1; i <= MaJiangDef.TIAO9; i++)
         {
@@ -111,58 +109,96 @@ public class Matrix {
     public void step(){
         int pai=cards.remove(0);
         if (showDetail){
+            System.out.println("----------------------------------------------------------------");
             System.out.println("Player"+currentPlayer.id);
+            System.out.println("status: "+currentPlayer.status);
             Collections.sort(currentPlayer.cards);
             System.out.println(MaJiangDef.cardsToString(currentPlayer.cards));
             System.out.println("摸到的牌:"+MaJiangDef.cardToString(pai));
             double n= AIUtil.calc(currentPlayer.cards,new ArrayList<>());
             System.out.println(n);
         }
-        int out=currentPlayer.mopai(pai);
+        ActionResult out=currentPlayer.mopai(pai);
         if (showDetail){
-            if (out != 0 && out != -1) System.out.println("打出的牌:"+MaJiangDef.cardToString(out));
+            //if (out.code==ResultCode.ChuPai) System.out.println("打出的牌:"+MaJiangDef.cardToString(out.value));
+            System.out.println("返回代码:"+out.code);
+            if (out.value != null) System.out.println("打出的牌:"+MaJiangDef.cardToString(out.value));
         }
         //此玩家已经胡牌
-        if (out==-1){
-            cards.add(pai);
+        if (out.code==ResultCode.NoAction){
+            cards.add(0,pai);
+            currentPlayer=currentPlayer.nextPlayer;
         }
-        else {
-            //胡牌
-            if (out==0) {
-                settle(pai,currentPlayer,currentPlayer);
-            }
-            //打出牌
-            else {
-                //是否有人胡牌
-                boolean somebodyHu=false;
-                for (Player p : players){
-                    if (p != currentPlayer){
-                        int r=p.hupai(out);
-                        if (r==0) {
-                            somebodyHu=true;
-                            settle(pai,currentPlayer,p);
-                        }
-                    }
-                }
-                //是否有人碰牌
-                if (!somebodyHu){
-                    for (Player p : players){
-                        if (p != currentPlayer){
-                            int r=p.peng(out);
-                            if (r != -1){
-                                if (showDetail){
-                                    System.out.println("碰 "+ MaJiangDef.cardToString(out));
-                                }
-                                out=r;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            cardsInTable.add(out);
+        else if (out.code==ResultCode.ZiMo) {
+            //自摸
+            out.from=this;
+            out.to=currentPlayer;
+            settle(out);
+            cardsOnTable.add(out.value);
+            currentPlayer=currentPlayer.nextPlayer;
         }
+        else if (out.code==ResultCode.MingGang){
+            return;
+        }
+        else if (out.code==ResultCode.AnGang){
+            return;
+        }
+        //出牌
+        else{
+            otherPlayerLookCard(out);
+        }
+    }
+
+    /**
+     * 其它玩家看牌
+     * @param out
+     */
+    private void otherPlayerLookCard(ActionResult out) {
+        //是否有人胡牌
+        boolean somebodyHu=false;
+        for (Player p : players){
+            if (p != currentPlayer){
+                ActionResult r=p.dianPaoHu(out.value);
+                if (r.code==ResultCode.DianPaoHu) {
+                    somebodyHu=true;
+                    r.from=currentPlayer;
+                    r.to=p;
+                    settle(r);
+                }
+            }
+        }
+        //是否有人碰杠牌
+        if (!somebodyHu){
+            pengGang(out);
+        }
+        cardsOnTable.add(out.value);
         currentPlayer=currentPlayer.nextPlayer;
+    }
+
+    /**
+     * 其它玩家碰杠牌
+     * @param out
+     */
+    private void pengGang(ActionResult out){
+        // TODO: 2022/2/12 添加杠牌算法
+        while (true) {
+            boolean somebodyPengGang = false; //是否有人碰牌或杠牌
+            for (Player p : players) {
+                if (p != currentPlayer) {
+                    ActionResult r = p.pengGang(out.value);
+                    if (r.code == ResultCode.Peng || r.code==ResultCode.PengGang) {
+                        if (showDetail) {
+                            System.out.println("碰 Player" + p.id + "  " + MaJiangDef.cardToString(out.value));
+                        }
+                        out.value = r.value;
+                        out.from=p;
+                        somebodyPengGang = true;
+                        break;
+                    }
+                }
+            }
+            if (!somebodyPengGang) break;
+        }
     }
 
     /**
@@ -178,8 +214,8 @@ public class Matrix {
     /**
      * 结账
      */
-    void settle(int pai,Player from,Player to){
-        if (showDetail) System.out.println("胡牌 "+MaJiangDef.cardToString(pai)+" from:"+from.id+" to:"+to.id);
+    void settle(ActionResult result){
+        //if (showDetail) System.out.println("胡牌 "+MaJiangDef.cardToString(pai)+" from:"+from.id+" to:"+to.id);
     }
 
     public void print(){

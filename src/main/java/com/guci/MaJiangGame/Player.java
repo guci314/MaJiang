@@ -1,9 +1,7 @@
 package com.guci.MaJiangGame;
 
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,10 +12,12 @@ public class Player {
     public int id;
     public List<Integer> cards=new ArrayList<>();
     public List<Integer> cardsOnTable=new ArrayList<>();
+    // TODO: 2022/2/13 是否需要暗杠列表
+    public List<Integer> anGangCards=new ArrayList<>();
     public Status status;
     public ActionList<MoPaiAction> moPaiActionList=new ActionList<>();
-    public ActionList<HuPaiAction> huPaiActionList=new ActionList<>();
-    public ActionList<BasicPengAction> pengActionList=new ActionList<>();
+    public ActionList<DianPaoHuAction> dianPaoHuActionList =new ActionList<>();
+    public ActionList<BasicPengGangAction> pengGangActionList =new ActionList<>();
     public Player nextPlayer;
     public HuaShe DingQue;
     public Matrix matrix;
@@ -30,40 +30,86 @@ public class Player {
                 ",status="+status+
                 ", cards=" + MaJiangDef.cardsToString(cards) +
                 ",cardsOnTable="+MaJiangDef.cardsToString(cardsOnTable)+
+                ",anGangCards="+MaJiangDef.cardsToString(anGangCards)+
                 ",定缺="+DingQue+
                 '}';
     }
 
-    public int mopai(int pai){
-        if (status==Status.Hu) return -1;
-        int r=moPaiActionList.go(pai,this);
-        if (r==0) status=Status.Hu;
+    public ActionResult mopai(int pai){
+        if (status==Status.Hu) return new ActionResult(ResultCode.NoAction,null);
+        ActionResult r=moPaiActionList.go(pai,this);
+        if (r.code==ResultCode.ZiMo) status=Status.Hu;
         return r;
     }
 
-    public int hupai(int pai){
-        if (status==Status.Hu) return -1;
-        int r = huPaiActionList.go(pai,this);
-        if (r==0) status=Status.Hu;
+    public ActionResult dianPaoHu(int pai){
+        if (status==Status.Hu) return new ActionResult(ResultCode.NoAction,null);
+        ActionResult r = dianPaoHuActionList.go(pai,this);
+        if (r.code==ResultCode.DianPaoHu) status=Status.Hu;
         return r;
     }
 
     /**
      *
      * @param pai
-     * @return -1 表示不碰  其它值表示碰后打出的牌
+     * @return
      */
-    public int peng(int pai){
-        if (status==Status.Hu) return -1;
-        int r=pengActionList.go(pai,this);
-        if (r != -1){
-            cardsOnTable.add(pai);
-            cardsOnTable.add(pai);
-            cardsOnTable.add(pai);
-            cards.remove((Integer) pai);
-            cards.remove((Integer) pai);
-            cards.remove((Integer) r);
-        }
+    public ActionResult pengGang(int pai){
+        if (status==Status.Hu) return new ActionResult(ResultCode.NoAction,null);
+        ActionResult r= pengGangActionList.go(pai,this);
         return r;
+    }
+
+    /**
+     * 检查给定的牌是否是定缺牌
+     * @param input
+     * @return
+     */
+    public boolean isQue(int input){
+        boolean isQue=false;
+        switch (DingQue){
+            case WAN:
+                isQue=input>= MaJiangDef.WAN1 && input<=MaJiangDef.WAN9;
+                break;
+            case TIAO:
+                isQue=input>= MaJiangDef.TIAO1 && input<=MaJiangDef.TIAO9;
+                break;
+            case TONG:
+                isQue=input>= MaJiangDef.TONG1 && input<=MaJiangDef.TONG9;
+                break;
+        }
+        return isQue;
+    }
+
+    /**
+     * 检查是否已经定缺
+     * @return
+     */
+    public boolean hasQue(){
+        boolean hasQue=false;
+        switch (DingQue){
+            case TONG:
+                hasQue=cards.stream().filter(x -> x >= MaJiangDef.TONG1 && x<=MaJiangDef.TONG9).count()==0;
+                break;
+            case TIAO:
+                hasQue=cards.stream().filter(x -> x >= MaJiangDef.TIAO1 && x<=MaJiangDef.TIAO9).count()==0;
+                break;
+            case WAN:
+                hasQue=cards.stream().filter(x -> x >= MaJiangDef.WAN1 && x<=MaJiangDef.WAN9).count()==0;
+                break;
+        }
+        return hasQue;
+    }
+
+    /**
+     * 检查牌是否可杠
+     * @param input
+     * @return
+     */
+    public boolean keGang(Integer input){
+        if (isQue(input)) return false;
+        if (Collections.frequency(cardsOnTable,input)==3) return true;
+        if (Collections.frequency(cards,input)==3) return true;
+        return false;
     }
 }

@@ -61,10 +61,11 @@ public class TestMaJiang {
     }
     @Test
     public void ting(){
-        String init = "2筒,3筒,4筒,5筒,5筒,6筒,6筒,7筒,7筒,7筒";
+        String init = "2筒,3筒,4筒,5筒,5筒,6筒,6筒,7条,7筒,7万";
         List<Integer> cards = MaJiangDef.stringToCards(init);
         List<Integer>gui=new ArrayList<>();
         System.out.println(MaJiangDef.cardsToString(HuUtil.isTingExtra(cards, gui)));
+        System.out.println(HuUtil.isTingExtra(cards, gui).size());
     }
     @Test
     public void hu(){
