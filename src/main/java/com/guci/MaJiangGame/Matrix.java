@@ -10,6 +10,7 @@ import java.util.List;
 public class Matrix {
     public boolean showDetail = false;
     public List<Player> players = new ArrayList<>();
+    JiZhang jiZhang;
     /**
      * 未显的牌
      */
@@ -27,6 +28,8 @@ public class Matrix {
      * 初始化
      */
     public void init() {
+        jiZhang=new JiZhang();
+        jiZhang.matrix=this;
         Player p1 = new Player();
         p1.id = 1;
         addBasicAction(p1);
@@ -74,6 +77,7 @@ public class Matrix {
         Collections.shuffle(cards);
         for (Player p : players) {
             p.status = Status.Playing;
+            p.jinE=0;
             ArrayList<Integer> c = new ArrayList<>();
             for (int i = 0; i < 13; i++) {
                 c.add(cards.remove(0));
@@ -85,9 +89,9 @@ public class Matrix {
             long numOfWan = p.cards.stream().filter(x -> x >= MaJiangDef.WAN1 && x <= MaJiangDef.WAN9).count();
             long numOfTiao = p.cards.stream().filter(x -> x >= MaJiangDef.TIAO1 && x <= MaJiangDef.TIAO9).count();
             long numOfTong = p.cards.stream().filter(x -> x >= MaJiangDef.TONG1 && x <= MaJiangDef.TONG9).count();
-            if (numOfTong <= numOfTiao && numOfTong <= numOfWan) p.DingQue = HuaShe.TONG;
-            if (numOfTiao <= numOfTong && numOfTiao <= numOfWan) p.DingQue = HuaShe.TIAO;
-            if (numOfWan <= numOfTiao && numOfWan <= numOfTong) p.DingQue = HuaShe.WAN;
+            if (numOfTong <= numOfTiao && numOfTong <= numOfWan) p.dingQue = HuaShe.TONG;
+            if (numOfTiao <= numOfTong && numOfTiao <= numOfWan) p.dingQue = HuaShe.TIAO;
+            if (numOfWan <= numOfTiao && numOfWan <= numOfTong) p.dingQue = HuaShe.WAN;
         }
     }
 
@@ -123,6 +127,7 @@ public class Matrix {
             System.out.println("返回代码:" + out.code);
             if (out.value != null) System.out.println("打出的牌:" + MaJiangDef.cardToString(out.value));
         }
+
         //此玩家已经胡牌
         if (out.code == ResultCode.NoAction) {
             cards.add(0, pai);
@@ -131,12 +136,15 @@ public class Matrix {
             //自摸
             out.from = this;
             out.to = currentPlayer;
-            settle(out);
             cardsOnTable.add(out.value);
+            currentPlayer.cards.remove((Integer) out.value);
+            settle(out);
             currentPlayer = currentPlayer.nextPlayer;
         } else if (out.code == ResultCode.MingGang) {
+            settle(out);
             return;
         } else if (out.code == ResultCode.AnGang) {
+            settle(out);
             return;
         }
         //出牌
@@ -196,6 +204,7 @@ public class Matrix {
                     //out.value = r.value;
                     //out.from = p;
                     //somebodyPengGang = true;
+                    //if (r.code==ResultCode.PengGang) settle(out);
                     currentPlayer=p;
                     return r;
                 }
@@ -218,12 +227,18 @@ public class Matrix {
      * 结账
      */
     void settle(ActionResult result){
-        System.out.println(result.code);
+        jiZhang.settle(result);
     }
 
     public void print(){
         for (Player p : players){
             System.out.println(p);
+        }
+    }
+
+    public void printJingE(){
+        for (Player p : players){
+            System.out.println(String.format("Player%d %d",p.id,p.jinE));
         }
     }
 }

@@ -1,11 +1,24 @@
 package com.guci.MaJiangGame;
 
+import com.github.esrrhs.majiang_algorithm.HuUtil;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DingQueMoPaiAction implements MoPaiAction{
+    List<Integer> gui = new ArrayList<>();
     @Override
     public ActionResult go(int input, Player me) {
         me.cards.add(input);
+        if (me.hasQue()){
+            if (HuUtil.isHuExtra(me.cards, gui, 0)){
+                ActionResult r=new ActionResult(ResultCode.ZiMo,input);
+                r.from=me.matrix;
+                r.to=me;
+                return r;
+            }
+        }
         //如果能杠,则无行为
         me.cards.remove((Integer) input);
         if (me.keGang(input)){
@@ -14,13 +27,16 @@ public class DingQueMoPaiAction implements MoPaiAction{
         me.cards.add((Integer) input);
 
         long num=0;
-        switch (me.DingQue){
+        switch (me.dingQue){
             case WAN:
                 num=me.cards.stream().filter(x->x>= MaJiangDef.WAN1 && x<=MaJiangDef.WAN9).count();
                 if (num>0) {
                     Integer n= me.cards.stream().filter(x->x>= MaJiangDef.WAN1 && x<=MaJiangDef.WAN9).findFirst().get();
                     me.cards.remove(n);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) n);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) n);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
                 break;
             case TIAO:
@@ -28,7 +44,10 @@ public class DingQueMoPaiAction implements MoPaiAction{
                 if (num>0) {
                     Integer n=me.cards.stream().filter(x->x>= MaJiangDef.TIAO1 && x<=MaJiangDef.TIAO9).findFirst().get();
                     me.cards.remove(n);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) n);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) n);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
                 break;
             case TONG:
@@ -36,7 +55,10 @@ public class DingQueMoPaiAction implements MoPaiAction{
                 if (num>0) {
                     Integer n= me.cards.stream().filter(x->x>= MaJiangDef.TONG1 && x<=MaJiangDef.TONG9).findFirst().get();
                     me.cards.remove(n);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) n);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) n);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
                 break;
         }

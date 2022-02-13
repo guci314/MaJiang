@@ -13,9 +13,10 @@ public class IsolatingMoPaiAction implements MoPaiAction{
     public ActionResult go(int input, Player me) {
         me.cards.add(input);
         if (HuUtil.isHuExtra(me.cards, gui, 0)){
-            ActionResult r=new ActionResult(ResultCode.ZiMo,null);
+            ActionResult r=new ActionResult(ResultCode.ZiMo,input);
             r.from=me.matrix;
             r.to=me;
+            me.cards.remove((Integer) input);
             return r;
         }
 
@@ -33,42 +34,60 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                 if (!me.cards.contains((Integer) MaJiangDef.WAN2) && !me.cards.contains((Integer) MaJiangDef.WAN3))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
             if (i== MaJiangDef.WAN9){
                 if (!me.cards.contains((Integer) MaJiangDef.WAN7) && !me.cards.contains((Integer) MaJiangDef.WAN8))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
             if (i== MaJiangDef.TIAO1){
                 if (!me.cards.contains((Integer) MaJiangDef.TIAO2) && !me.cards.contains((Integer) MaJiangDef.TIAO3))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
             if (i== MaJiangDef.TIAO9){
                 if (!me.cards.contains((Integer) MaJiangDef.TIAO7) && !me.cards.contains((Integer) MaJiangDef.TIAO8))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
             if (i== MaJiangDef.TONG1){
                 if (!me.cards.contains((Integer) MaJiangDef.TONG2) && !me.cards.contains((Integer) MaJiangDef.TONG3))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
             if (i== MaJiangDef.TONG9){
                 if (!me.cards.contains((Integer) MaJiangDef.TONG7) && !me.cards.contains((Integer) MaJiangDef.TONG8))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
         }
@@ -81,7 +100,10 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                         && !me.cards.contains((Integer) MaJiangDef.WAN4))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
             if (i== MaJiangDef.WAN8){
@@ -90,7 +112,10 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                         && !me.cards.contains((Integer) MaJiangDef.WAN6))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
             if (i== MaJiangDef.TIAO2){
@@ -99,7 +124,10 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                         && !me.cards.contains((Integer) MaJiangDef.TIAO4))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
             if (i== MaJiangDef.TIAO8){
@@ -108,7 +136,10 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                         && !me.cards.contains((Integer) MaJiangDef.TIAO6))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
             if (i== MaJiangDef.TONG2){
@@ -117,7 +148,10 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                         && !me.cards.contains((Integer) MaJiangDef.TONG4))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
             if (i== MaJiangDef.TONG8){
@@ -126,7 +160,10 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                         && !me.cards.contains((Integer) MaJiangDef.TONG6))
                 {
                     me.cards.remove((Integer) i);
-                    return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                    r.to=me;
+                    r.from=me.matrix;
+                    return r;
                 }
             }
         }
@@ -136,7 +173,10 @@ public class IsolatingMoPaiAction implements MoPaiAction{
             if (!me.cards.contains(i+1) && !me.cards.contains(i+2) && !me.cards.contains(i-1) && !me.cards.contains(i-2))
             {
                 me.cards.remove((Integer) i);
-                return new ActionResult(ResultCode.ChuPai,(Integer) i);
+                ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
+                r.to=me;
+                r.from=me.matrix;
+                return r;
             }
         }
         me.cards.remove((Integer) input);

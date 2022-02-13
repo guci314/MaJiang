@@ -4,7 +4,9 @@ import com.guci.MaJiangGame.HuaShe;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class TestJava {
     @Test
@@ -25,11 +27,7 @@ public class TestJava {
 
     @Test
     public void testLoop(){
-        List<Integer> l=new ArrayList<>();
-        l.add(1);
-        l.add(2);
-        l.add(3);
-        System.out.println(l.remove(0));
-        System.out.println(l.remove(0));
+        int x= (int) Math.pow(2,4);
+        System.out.println(x);
     }
 }

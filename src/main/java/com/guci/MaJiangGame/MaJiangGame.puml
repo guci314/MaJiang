@@ -6,8 +6,8 @@ together {
     class Game
     class Player{
         ActionList<MoPaiAction> 摸牌行为链
-        ActionList<HuPaiAction> 胡牌行为链
-        ActionList<KanPaiAction> 看牌行为链
+        ActionList<DianPaoHuAction> 点炮胡行为链
+        ActionList<BasicPengGangAction> 碰杠牌行为链
     }
     Game o-- Player:拥有 4
 }
@@ -24,11 +24,18 @@ together {
 
     ActionList *- Action
     interface MoPaiAction
-    interface KanPaiAction
-    interface HuPaiAction
+    interface PengGangAction
+    interface DianPaoHuAction
     Action <|-- MoPaiAction
-    Action <|-- KanPaiAction
-    Action <|-- HuPaiAction
+    Action <|-- PengGangAction
+    Action <|-- DianPaoHuAction
+
+    class BasicMoPaiAction implements MoPaiAction
+    class DingQueMoPaiAction implements MoPaiAction
+    class IsolatingMoPaiAction implements MoPaiAction
+    class BasicPengGangAction implements PengGangAction
+    class BasicDianPaoHuAction implements DianPaoHuAction
+
 }
 
 @enduml

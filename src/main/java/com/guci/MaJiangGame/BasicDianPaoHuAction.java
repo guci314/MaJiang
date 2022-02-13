@@ -20,7 +20,7 @@ public class BasicDianPaoHuAction implements DianPaoHuAction {
         List<Integer> tmp = new ArrayList<>(me.cards);
         tmp.add(input);
         if (HuUtil.isHuExtra(tmp, gui, 0)){
-            return new ActionResult(ResultCode.DianPaoHu,null);
+            return new ActionResult(ResultCode.DianPaoHu,input);
         }
         else return new ActionResult(ResultCode.NoAction,null);
     }

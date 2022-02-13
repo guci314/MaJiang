@@ -19,8 +19,9 @@ public class Player {
     public ActionList<DianPaoHuAction> dianPaoHuActionList =new ActionList<>();
     public ActionList<BasicPengGangAction> pengGangActionList =new ActionList<>();
     public Player nextPlayer;
-    public HuaShe DingQue;
+    public HuaShe dingQue;
     public Matrix matrix;
+    public int jinE;
 
     @Override
     public java.lang.String toString() {
@@ -31,7 +32,7 @@ public class Player {
                 ", cards=" + MaJiangDef.cardsToString(cards) +
                 ",cardsOnTable="+MaJiangDef.cardsToString(cardsOnTable)+
                 ",anGangCards="+MaJiangDef.cardsToString(anGangCards)+
-                ",定缺="+DingQue+
+                ",定缺="+ dingQue +
                 '}';
     }
 
@@ -67,7 +68,7 @@ public class Player {
      */
     public boolean isQue(int input){
         boolean isQue=false;
-        switch (DingQue){
+        switch (dingQue){
             case WAN:
                 isQue=input>= MaJiangDef.WAN1 && input<=MaJiangDef.WAN9;
                 break;
@@ -87,7 +88,7 @@ public class Player {
      */
     public boolean hasQue(){
         boolean hasQue=false;
-        switch (DingQue){
+        switch (dingQue){
             case TONG:
                 hasQue=cards.stream().filter(x -> x >= MaJiangDef.TONG1 && x<=MaJiangDef.TONG9).count()==0;
                 break;

@@ -6,17 +6,24 @@ autonumber
 矩阵 -> 矩阵 : 初始化
 loop 如果游戏未结束
     矩阵 -> 当前玩家: 摸牌
-    return 当前牌
-    loop 其它玩家
-        矩阵 -> 其它玩家: 点炮胡(当前牌)
+    return ActionResult
+    alt ActionResult.code==NoAction
+        矩阵 -> 矩阵 : 结束步骤
     end
-    alt 如果没人胡牌
-        loop 其它玩家
-            矩阵 -> 其它玩家: 杠牌碰牌(当前牌)
+    alt ActionResult.code==ZiMo
+        矩阵 -> 矩阵 : 结账
+    end
+    alt ActionResult.code==MingGang
+        矩阵 -> 矩阵 : 结账
+    end
+    alt ActionResult.code==AnGang
+        矩阵 -> 矩阵 : 结账
+    end
+    alt ActionResult.code==ChuPai
+        loop
+            矩阵->矩阵:玩家看牌
         end
     end
-    矩阵 -> 矩阵 : 结账
-    矩阵 -> 矩阵 : 当前玩家移动到下一个
 end
 
 @enduml

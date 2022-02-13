@@ -42,7 +42,8 @@ public class TestMatrix {
         player.cards=cards;
         String spai="3万";
         int pai=MaJiangDef.stringToCard(spai);
-        int out=player.mopai(pai).value;
+        ActionResult result=player.mopai(pai);
+        int out=result.value;
         String sout=MaJiangDef.cardToString(out);
         Assert.assertEquals("6万",sout);
 
@@ -61,7 +62,10 @@ public class TestMatrix {
         player.cards=cards;
         spai="1万";
         pai=MaJiangDef.stringToCard(spai);
-        Assert.assertEquals(ResultCode.ZiMo,player.mopai(pai).code);
+        result=player.mopai(pai);
+        Assert.assertEquals(ResultCode.ZiMo,result.code);
+        Assert.assertEquals("1万",MaJiangDef.cardToString(result.value));
+        Assert.assertTrue(result.to==player);
         Assert.assertEquals(Status.Hu,player.status);
 
         //玩家已胡牌
@@ -77,7 +81,7 @@ public class TestMatrix {
         player.moPaiActionList.add(new IsolatingMoPaiAction());
         player.moPaiActionList.add(new BasicMoPaiAction());
         player.status=Status.Playing;
-        player.DingQue=HuaShe.TIAO;
+        player.dingQue =HuaShe.TIAO;
         String init = "4万,8万,5筒,6筒,6筒,8筒,9筒,1条,1条,2条,4条,5条,9条";
         List<Integer> cards = MaJiangDef.stringToCards(init);
         player.cards=cards;
@@ -125,7 +129,7 @@ public class TestMatrix {
     @Test
     public void testHuPai(){
         Player player=new Player();
-        player.DingQue=HuaShe.TIAO;
+        player.dingQue =HuaShe.TIAO;
         player.dianPaoHuActionList.add(new BasicDianPaoHuAction());
         player.status=Status.Playing;
         String init = "2万,3万,3筒,3筒";
@@ -144,7 +148,7 @@ public class TestMatrix {
     @Test
     public void testPeng(){
         Player player=new Player();
-        player.DingQue=HuaShe.TIAO;
+        player.dingQue =HuaShe.TIAO;
         player.pengGangActionList.add(new BasicPengGangAction());
         player.status=Status.Playing;
         String init = "1万,1万,2万,2万,3筒,4筒,9筒";
@@ -170,16 +174,16 @@ public class TestMatrix {
         matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
         spai="1条,1条,1条";
         matrix.players.get(0).cardsOnTable=MaJiangDef.stringToCards(spai);
-        matrix.players.get(0).DingQue=HuaShe.WAN;
+        matrix.players.get(0).dingQue =HuaShe.WAN;
         spai="1万";
         matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(1).DingQue=HuaShe.TIAO;
+        matrix.players.get(1).dingQue =HuaShe.TIAO;
         spai="1万";
         matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(1).DingQue=HuaShe.TIAO;
+        matrix.players.get(1).dingQue =HuaShe.TIAO;
         spai="1万";
         matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(1).DingQue=HuaShe.TIAO;
+        matrix.players.get(1).dingQue =HuaShe.TIAO;
 
         matrix.currentPlayer=matrix.players.get(0);
         matrix.cards=new ArrayList<>();
@@ -196,22 +200,21 @@ public class TestMatrix {
 
     @Test
     public void testPengGang(){
-        // TODO: 2022/2/13 测试级联碰牌杠牌
         Matrix matrix=new Matrix();
         matrix.init();
         matrix.reset();
         String spai="1条";//"1万,1万,1万,3条"
         matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(0).DingQue=HuaShe.WAN;
+        matrix.players.get(0).dingQue =HuaShe.WAN;
         spai="1万,1万,1万,3条";
         matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(1).DingQue=HuaShe.TONG;
+        matrix.players.get(1).dingQue =HuaShe.TONG;
         spai="1筒";
         matrix.players.get(2).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(2).DingQue=HuaShe.WAN;
+        matrix.players.get(2).dingQue =HuaShe.WAN;
         spai="1筒";
         matrix.players.get(3).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(3).DingQue=HuaShe.WAN;
+        matrix.players.get(3).dingQue =HuaShe.WAN;
 
         matrix.cards.clear();
         matrix.cards.add(MaJiangDef.stringToCard("1万"));
@@ -234,16 +237,16 @@ public class TestMatrix {
         matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
         spai="1条,1条,1条";
         matrix.players.get(0).cardsOnTable=MaJiangDef.stringToCards(spai);
-        matrix.players.get(0).DingQue=HuaShe.WAN;
+        matrix.players.get(0).dingQue =HuaShe.WAN;
         spai="1万";
         matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(1).DingQue=HuaShe.TIAO;
+        matrix.players.get(1).dingQue =HuaShe.TIAO;
         spai="1万";
         matrix.players.get(2).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(2).DingQue=HuaShe.TIAO;
+        matrix.players.get(2).dingQue =HuaShe.TIAO;
         spai="1万";
         matrix.players.get(3).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(3).DingQue=HuaShe.TIAO;
+        matrix.players.get(3).dingQue =HuaShe.TIAO;
 
         matrix.currentPlayer=matrix.players.get(0);
         matrix.cards=new ArrayList<>();
@@ -265,16 +268,16 @@ public class TestMatrix {
         matrix.reset();
         String spai="1条,3条,9筒,9筒";
         matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(0).DingQue=HuaShe.WAN;
+        matrix.players.get(0).dingQue =HuaShe.WAN;
         spai="1万,3万,9筒,9筒";
         matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(1).DingQue=HuaShe.TIAO;
+        matrix.players.get(1).dingQue =HuaShe.TIAO;
         spai="1筒,3筒,9筒,9筒";
         matrix.players.get(2).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(2).DingQue=HuaShe.WAN;
+        matrix.players.get(2).dingQue =HuaShe.WAN;
         spai="1筒,4筒,7筒,9条";
         matrix.players.get(3).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(3).DingQue=HuaShe.WAN;
+        matrix.players.get(3).dingQue =HuaShe.WAN;
         matrix.currentPlayer=matrix.players.get(0);
 
         //自摸
@@ -300,16 +303,16 @@ public class TestMatrix {
         matrix.reset();
         String spai="1筒";
         matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(0).DingQue=HuaShe.WAN;
+        matrix.players.get(0).dingQue =HuaShe.WAN;
         matrix.players.get(1).cards=new ArrayList<>();
         matrix.players.get(1).cards.add(MaJiangDef.WAN2);
-        matrix.players.get(1).DingQue=HuaShe.TIAO;
+        matrix.players.get(1).dingQue =HuaShe.TIAO;
         matrix.players.get(2).cards=new ArrayList<>();
         matrix.players.get(2).cards.add(MaJiangDef.WAN2);
-        matrix.players.get(2).DingQue=HuaShe.TIAO;
+        matrix.players.get(2).dingQue =HuaShe.TIAO;
         matrix.players.get(3).cards=new ArrayList<>();
         matrix.players.get(3).cards.add(MaJiangDef.WAN3);
-        matrix.players.get(3).DingQue=HuaShe.TIAO;
+        matrix.players.get(3).dingQue =HuaShe.TIAO;
         matrix.currentPlayer=matrix.players.get(0);
 
         //一炮两响
@@ -344,16 +347,16 @@ public class TestMatrix {
         matrix.reset();
         String spai="1万";
         matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(0).DingQue=HuaShe.TIAO;
+        matrix.players.get(0).dingQue =HuaShe.TIAO;
         spai="1筒";
         matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(1).DingQue=HuaShe.WAN;
+        matrix.players.get(1).dingQue =HuaShe.WAN;
         matrix.players.get(2).cards=new ArrayList<>();
         matrix.players.get(2).cards.add(MaJiangDef.WAN2);
-        matrix.players.get(2).DingQue=HuaShe.TONG;
+        matrix.players.get(2).dingQue =HuaShe.TONG;
         matrix.players.get(3).cards=new ArrayList<>();
         matrix.players.get(3).cards.add(MaJiangDef.WAN3);
-        matrix.players.get(3).DingQue=HuaShe.TONG;
+        matrix.players.get(3).dingQue =HuaShe.TONG;
         matrix.currentPlayer=matrix.players.get(0);
 
         matrix.cards=new ArrayList<>();
@@ -370,19 +373,19 @@ public class TestMatrix {
         matrix.reset();
         String spai="1筒,1筒,3条,3条";
         matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(0).DingQue=HuaShe.WAN;
+        matrix.players.get(0).dingQue =HuaShe.WAN;
         //打出1万
         spai="1万,1万,3条,3条";
         matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(1).DingQue=HuaShe.TIAO;
+        matrix.players.get(1).dingQue =HuaShe.TIAO;
         //碰1万 打出3条
         spai="9万,9万,3条,3条";
         matrix.players.get(2).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(2).DingQue=HuaShe.WAN;
+        matrix.players.get(2).dingQue =HuaShe.WAN;
         //碰3条 打出9万
         spai="9万,9万,3条,3条";
         matrix.players.get(3).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(3).DingQue=HuaShe.TIAO;
+        matrix.players.get(3).dingQue =HuaShe.TIAO;
         //碰9万  打出3条
         matrix.currentPlayer=matrix.players.get(0);
         matrix.cards=new ArrayList<>();
@@ -410,20 +413,20 @@ public class TestMatrix {
         //摸1万 打出1万
         String spai="1筒,1筒,3条,3条";
         matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(0).DingQue=HuaShe.WAN;
+        matrix.players.get(0).dingQue =HuaShe.WAN;
 
         //碰1万 打出3条,上家胡3条
         spai="1万,1万,3条,3条";
         matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(1).DingQue=HuaShe.TIAO;
+        matrix.players.get(1).dingQue =HuaShe.TIAO;
 
         spai="1条";
         matrix.players.get(2).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(2).DingQue=HuaShe.TIAO;
+        matrix.players.get(2).dingQue =HuaShe.TIAO;
 
         spai="1条";
         matrix.players.get(3).cards=MaJiangDef.stringToCards(spai);
-        matrix.players.get(3).DingQue=HuaShe.TIAO;
+        matrix.players.get(3).dingQue =HuaShe.TIAO;
 
         matrix.currentPlayer=matrix.players.get(0);
         matrix.cards=new ArrayList<>();
@@ -467,12 +470,121 @@ public class TestMatrix {
         p.moPaiActionList.add(new IsolatingMoPaiAction());
         p.moPaiActionList.add(new BasicMoPaiAction());
         p.status=Status.Playing;
-        p.DingQue=HuaShe.TIAO;
+        p.dingQue =HuaShe.TIAO;
         p.cards=MaJiangDef.stringToCards(spai);
         p.cardsOnTable=new ArrayList<>();
         p.mopai(MaJiangDef.stringToCard("5筒"));
         Assert.assertEquals(4,Collections.frequency(p.anGangCards,MaJiangDef.stringToCard("5筒")));
     }
 
+    // TODO: 2022/2/13 杠上花
+    @Test
+    public void testGangShangHua(){
 
+    }
+
+    // TODO: 2022/2/13 杠上炮
+    @Test
+    public void testGangShangPao(){
+
+    }
+
+    @Test
+    public void testSettle_Hu(){
+        Matrix matrix=createSimpleMatrix();
+        String spai="1条,1条,1条,1条,2条,3条,5筒";
+        matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(0).dingQue=HuaShe.WAN;
+        spai="2条";
+        matrix.players.get(2).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(2).dingQue=HuaShe.WAN;
+        matrix.cards.add(MaJiangDef.stringToCard("5筒"));
+        matrix.cards.add(MaJiangDef.stringToCard("2条"));
+        matrix.step();
+
+        Assert.assertEquals(Status.Hu,matrix.players.get(0).status);
+        Assert.assertEquals(12,matrix.players.get(0).jinE);
+        Assert.assertEquals(-4,matrix.players.get(1).jinE);
+        Assert.assertEquals(-4,matrix.players.get(2).jinE);
+        Assert.assertEquals(-4,matrix.players.get(3).jinE);
+        Assert.assertTrue(matrix.currentPlayer==matrix.players.get(1));
+
+        matrix.step();
+
+        Assert.assertEquals(Status.Hu,matrix.players.get(2).status);
+        Assert.assertTrue(matrix.currentPlayer==matrix.players.get(2));
+        Assert.assertEquals(-5,matrix.players.get(1).jinE);
+        Assert.assertEquals(-3,matrix.players.get(2).jinE);
+        //System.out.println(matrix.currentPlayer.id);
+    }
+
+    @Test
+    public void testSettle_AnGang(){
+        Matrix matrix=createSimpleMatrix();
+        String spai="1条,1条,1条,1筒,2筒,3条,5筒";
+        matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(0).dingQue=HuaShe.WAN;
+        matrix.cards.add(MaJiangDef.stringToCard("1条"));
+        matrix.step();
+
+        Assert.assertEquals(6,matrix.players.get(0).jinE);
+        Assert.assertEquals(-2,matrix.players.get(1).jinE);
+        Assert.assertTrue(matrix.currentPlayer==matrix.players.get(0));
+
+    }
+
+    @Test
+    public void testSettle_MingGang(){
+        Matrix matrix=createSimpleMatrix();
+        String spai="1筒";
+        matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
+        for (int i=0;i<3;i++){
+            matrix.players.get(0).cardsOnTable.add(MaJiangDef.stringToCard("1条"));
+        }
+        matrix.players.get(0).dingQue=HuaShe.WAN;
+        matrix.cards.add(MaJiangDef.stringToCard("1条"));
+        matrix.step();
+
+        Assert.assertEquals(3,matrix.players.get(0).jinE);
+        Assert.assertEquals(-1,matrix.players.get(1).jinE);
+        Assert.assertTrue(matrix.currentPlayer==matrix.players.get(0));
+
+    }
+
+    @Test
+    public void testSettle_PengGang(){
+        Matrix matrix=createSimpleMatrix();
+        String spai="1筒,1条,1条,1条";
+        matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(1).dingQue=HuaShe.WAN;
+        matrix.cards.add(MaJiangDef.stringToCard("1条"));
+        matrix.cards.add(MaJiangDef.stringToCard("2条"));
+        matrix.step();
+
+        Assert.assertEquals(4,matrix.players.get(1).cardsOnTable.size());
+        Assert.assertEquals(4,matrix.players.get(1).jinE);
+        Assert.assertEquals(-2,matrix.players.get(0).jinE);
+        Assert.assertEquals(-1,matrix.players.get(2).jinE);
+        Assert.assertEquals(-1,matrix.players.get(3).jinE);
+    }
+
+    private Matrix createSimpleMatrix() {
+        Matrix matrix=new Matrix();
+        matrix.showDetail=true;
+        matrix.init();
+        matrix.reset();
+        String spai="1万";
+        matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(0).dingQue =HuaShe.TIAO;
+        matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(1).dingQue =HuaShe.TIAO;
+        matrix.players.get(2).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(2).dingQue =HuaShe.TIAO;
+        matrix.players.get(3).cards=MaJiangDef.stringToCards(spai);
+        matrix.players.get(3).dingQue =HuaShe.TIAO;
+        matrix.currentPlayer=matrix.players.get(0);
+
+        matrix.cards=new ArrayList<>();
+        return matrix;
+    }
 }

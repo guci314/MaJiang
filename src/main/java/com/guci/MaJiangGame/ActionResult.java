@@ -9,7 +9,7 @@ public class ActionResult {
     public ResultCode code;
     public Integer value;
     public Object from;
-    public Object to;
+    public Player to;
 
     public ActionResult(ResultCode c,Integer v){
         code=c;
@@ -18,8 +18,10 @@ public class ActionResult {
 
     @Override
     public String toString() {
-        String s= "ActionResult{" + "code=" + code+", value= %s}";
-        s=String.format(s,value==null ? "null" : MaJiangDef.cardToString(value));
+        String sfrom= from==null ? "null":from.toString();
+        String sto= to==null ? "null":to.toString();
+        String s= "ActionResult{" + "code=" + code+", value= %s,from=%s,to=%s}";
+        s=String.format(s,value==null ? "null" : MaJiangDef.cardToString(value),sfrom,sto);
         return s;
     }
 }
