@@ -11,8 +11,8 @@ public class JiZhang {
      * 结账
      */
     void settle(ActionResult result){
-        //System.out.println(result);
         if (result.code==ResultCode.ZiMo){
+            //System.out.println("自摸 player"+result.to.id);
             int fan=jiFan(result.to, result.value);
             fan++;
             int n=(int) Math.pow(2,fan);
@@ -25,6 +25,7 @@ public class JiZhang {
         }
 
         if (result.code==ResultCode.DianPaoHu){
+            //System.out.println("点炮胡 player"+result.to.id+"  点炮者 "+((Player)result.from).id);
             int fan=jiFan(result.to, result.value);
             int n=(int) Math.pow(2,fan);
             ((Player)result.from).jinE=((Player)result.from).jinE-n;
@@ -32,6 +33,7 @@ public class JiZhang {
         }
 
         if (result.code==ResultCode.AnGang){
+            //System.out.println("暗杠 "+result.to.id);
             result.to.jinE=result.to.jinE+6;
             for (Player p : result.to.matrix.players){
                 if (p != result.to){
@@ -41,6 +43,7 @@ public class JiZhang {
         }
 
         if (result.code==ResultCode.MingGang){
+            //System.out.println("明杠 "+result.to.id);
             result.to.jinE=result.to.jinE+3;
             for (Player p : result.to.matrix.players){
                 if (p != result.to){
@@ -50,6 +53,7 @@ public class JiZhang {
         }
 
         if (result.code==ResultCode.PengGang){
+            //System.out.println("碰杠 "+result.to.id);
             result.to.jinE=result.to.jinE+4;
             ((Player)result.from).jinE=((Player)result.from).jinE-2;
             for(Player p : result.to.matrix.players){

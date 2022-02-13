@@ -77,7 +77,7 @@ public class Matrix {
         Collections.shuffle(cards);
         for (Player p : players) {
             p.status = Status.Playing;
-            p.jinE=0;
+            //p.jinE=0;
             ArrayList<Integer> c = new ArrayList<>();
             for (int i = 0; i < 13; i++) {
                 c.add(cards.remove(0));
@@ -85,6 +85,7 @@ public class Matrix {
             //Collections.sort(c);
             p.cards = c;
             p.cardsOnTable = new ArrayList<>();
+            p.anGangCards.clear();
             //定缺
             long numOfWan = p.cards.stream().filter(x -> x >= MaJiangDef.WAN1 && x <= MaJiangDef.WAN9).count();
             long numOfTiao = p.cards.stream().filter(x -> x >= MaJiangDef.TIAO1 && x <= MaJiangDef.TIAO9).count();
