@@ -6,14 +6,14 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor
 public class Player {
     public int id;
     public List<Integer> cards=new ArrayList<>();
     public List<Integer> cardsOnTable=new ArrayList<>();
-    // TODO: 2022/2/13 是否需要暗杠列表
-    public List<Integer> anGangCards=new ArrayList<>();
+    //public List<Integer> anGangCards=new ArrayList<>();
     public Status status;
     public ActionList<MoPaiAction> moPaiActionList=new ActionList<>();
     public ActionList<DianPaoHuAction> dianPaoHuActionList =new ActionList<>();
@@ -22,6 +22,10 @@ public class Player {
     public HuaShe dingQue;
     public Matrix matrix;
     public int jinE;
+    /**
+     * 清一色短张阈值
+     */
+    int threshold=4;
 
     @Override
     public java.lang.String toString() {
@@ -31,7 +35,7 @@ public class Player {
                 ",status="+status+
                 ", cards=" + MaJiangDef.cardsToString(cards) +
                 ",cardsOnTable="+MaJiangDef.cardsToString(cardsOnTable)+
-                ",anGangCards="+MaJiangDef.cardsToString(anGangCards)+
+                //",anGangCards="+MaJiangDef.cardsToString(anGangCards)+
                 ",定缺="+ dingQue +
                 '}';
     }
@@ -87,19 +91,7 @@ public class Player {
      * @return
      */
     public boolean hasQue(){
-        boolean hasQue=false;
-        switch (dingQue){
-            case TONG:
-                hasQue=cards.stream().filter(x -> x >= MaJiangDef.TONG1 && x<=MaJiangDef.TONG9).count()==0;
-                break;
-            case TIAO:
-                hasQue=cards.stream().filter(x -> x >= MaJiangDef.TIAO1 && x<=MaJiangDef.TIAO9).count()==0;
-                break;
-            case WAN:
-                hasQue=cards.stream().filter(x -> x >= MaJiangDef.WAN1 && x<=MaJiangDef.WAN9).count()==0;
-                break;
-        }
-        return hasQue;
+        return !cards.stream().anyMatch(x->isQue(x));
     }
 
     /**
@@ -112,5 +104,34 @@ public class Player {
         if (Collections.frequency(cardsOnTable,input)==3) return true;
         if (Collections.frequency(cards,input)==3) return true;
         return false;
+    }
+
+
+    /**
+     * 判定是否做清一色. 如果是则返回花色.如果不做则返回null
+     * @return
+     */
+    public HuaShe zuoQingYiShe(){
+        // TODO: 2022/2/15 根据剩余张数和短牌张数的比值决策清一色
+        if (cardsOnTable.stream().anyMatch(x->isQue(x))) return null;
+        List<Integer> all=new ArrayList<>();
+        all.addAll(cards);
+        all.addAll(cardsOnTable);
+        long lengthOfWAN=all.stream().filter(x->x>=MaJiangDef.WAN1 && x<=MaJiangDef.WAN9).count();
+        long lengthOfTIAO=all.stream().filter(x->x>=MaJiangDef.TIAO1 && x<=MaJiangDef.TIAO9).count();
+        long lengthOfTONG=all.stream().filter(x->x>=MaJiangDef.TONG1 && x<=MaJiangDef.TONG9).count();
+        if (dingQue==HuaShe.TIAO){
+            if (lengthOfWAN<=threshold) return HuaShe.TONG;
+            if (lengthOfTONG<=threshold) return HuaShe.WAN;
+        }
+        if (dingQue==HuaShe.TONG){
+            if (lengthOfTIAO<=threshold) return HuaShe.WAN;
+            if (lengthOfWAN<=threshold) return HuaShe.TIAO;
+        }
+        if (dingQue==HuaShe.WAN){
+            if (lengthOfTIAO<=threshold) return HuaShe.TONG;
+            if (lengthOfTONG<=threshold) return HuaShe.TIAO;
+        }
+        return null;
     }
 }

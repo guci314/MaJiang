@@ -11,6 +11,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
     List<Integer> gui = new ArrayList<>();
     @Override
     public ActionResult go(int input, Player me) {
+        if (me.zuoQingYiShe() != null) return new ActionResult(ResultCode.NoAction,null);
         me.cards.add(input);
         if (HuUtil.isHuExtra(me.cards, gui, 0)){
             ActionResult r=new ActionResult(ResultCode.ZiMo,input);

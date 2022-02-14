@@ -1,5 +1,7 @@
 package com.guci.MaJiangGame;
 
+import com.github.esrrhs.majiang_algorithm.MaJiangDef;
+
 import java.util.*;
 
 /**
@@ -15,6 +17,7 @@ public class JiZhang {
             //System.out.println("自摸 player"+result.to.id);
             int fan=jiFan(result.to, result.value);
             fan++;
+            if (fan>5) fan=5;
             int n=(int) Math.pow(2,fan);
             result.to.jinE=result.to.jinE+n*3;
             for(Player p : result.to.matrix.players){
@@ -69,18 +72,25 @@ public class JiZhang {
      * @param p
      * @return
      */
-    int jiFan(Player p,int input){
+    public int jiFan(Player p,int input){
+        // TODO: 2022/2/15 加入清一色计番
         List<Integer> all=new ArrayList<>();
         all.add((Integer) input);
         all.addAll(p.cards);
         all.addAll(p.cardsOnTable);
-        all.addAll(p.anGangCards);
+        //all.addAll(p.anGangCards);
         Set<Integer> allSet = new HashSet<>();
         allSet.addAll(all);
         int fan=0;
         for(Integer i : allSet){
             if (Collections.frequency(all,i)==4) fan++;
         }
+        boolean isQingYiShe=false;
+        if(all.stream().allMatch(x->x>= MaJiangDef.TIAO1 && x<=MaJiangDef.TIAO9)) isQingYiShe=true;
+        if(all.stream().allMatch(x->x>= MaJiangDef.WAN1 && x<=MaJiangDef.WAN9)) isQingYiShe=true;
+        if(all.stream().allMatch(x->x>= MaJiangDef.TONG1 && x<=MaJiangDef.TONG9)) isQingYiShe=true;
+        if (isQingYiShe) fan=fan+2;
+        if (fan >5) fan=5;
         return fan;
     }
 }

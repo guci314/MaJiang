@@ -1,0 +1,18 @@
+@startuml
+'https://plantuml.com/state-diagram
+
+scale 350 width
+[*] --> 发牌态
+
+state 发牌态 {
+
+}
+
+state 处理态 {
+
+}
+
+发牌态 --> 处理态 :发牌
+处理态 --> 发牌态 :处理完毕
+
+@enduml

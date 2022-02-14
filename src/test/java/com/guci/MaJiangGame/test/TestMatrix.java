@@ -4,6 +4,7 @@ import com.github.esrrhs.majiang_algorithm.AIUtil;
 import com.github.esrrhs.majiang_algorithm.HuUtil;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 import com.guci.MaJiangGame.*;
+import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -374,7 +375,7 @@ public class TestMatrix {
         String spai="1筒,1筒,3条,3条";
         matrix.players.get(0).cards=MaJiangDef.stringToCards(spai);
         matrix.players.get(0).dingQue =HuaShe.WAN;
-        //打出1万
+        //摸1万 打出1万
         spai="1万,1万,3条,3条";
         matrix.players.get(1).cards=MaJiangDef.stringToCards(spai);
         matrix.players.get(1).dingQue =HuaShe.TIAO;
@@ -440,6 +441,7 @@ public class TestMatrix {
 
     @Test
     public void testPlay(){
+        // TODO: 2022/2/14 完善日志 用于大数据分析
         Matrix matrix=new Matrix();
         //matrix.showDetail=true;
         matrix.init();
@@ -452,14 +454,33 @@ public class TestMatrix {
     }
 
     @Test
+    public void testPlayQingYiSe(){
+        Matrix matrix=new Matrix();
+        //matrix.showDetail=true;
+        matrix.init();
+        matrix.createQingYiSeAction();
+        matrix.reset();
+        System.out.println("游戏开始之前");
+        matrix.print();
+        matrix.play();
+        System.out.println("游戏结束之后");
+        matrix.print();
+    }
+
+    @Test
     public void testPerformance(){
+        int total=0;
         Matrix matrix=new Matrix();
         matrix.init();
         //matrix.showDetail=true;
-        for(int i=0;i<10;i++){
+        for(int i=0;i<1000;i++){
             matrix.reset();
             matrix.play();
+            for (Player p:matrix.players){
+                if (p.status==Status.Hu) total++;
+            }
         }
+        System.out.println(total);
     }
 
     @Test
@@ -474,7 +495,7 @@ public class TestMatrix {
         p.cards=MaJiangDef.stringToCards(spai);
         p.cardsOnTable=new ArrayList<>();
         p.mopai(MaJiangDef.stringToCard("5筒"));
-        Assert.assertEquals(4,Collections.frequency(p.anGangCards,MaJiangDef.stringToCard("5筒")));
+        Assert.assertEquals(4,Collections.frequency(p.cardsOnTable,MaJiangDef.stringToCard("5筒")));
     }
 
     // TODO: 2022/2/13 杠上花
@@ -586,5 +607,36 @@ public class TestMatrix {
 
         matrix.cards=new ArrayList<>();
         return matrix;
+    }
+
+    @Test
+    public void testQingYiSheMoPaiAction(){
+        Player p=new Player();
+        p.dingQue=HuaShe.WAN;
+        p.moPaiActionList.add(new DingQueMoPaiAction());
+        p.moPaiActionList.add(new IsolatingMoPaiAction());
+        p.moPaiActionList.add(new QingYiSheMoPaiAction());
+        p.cardsOnTable=MaJiangDef.stringToCards("1条,1条,1条,2条,2条,2条");
+        p.cards=MaJiangDef.stringToCards("5条,2筒,3筒,5筒"); //1条,2筒,3筒,5筒
+        ActionResult result= p.mopai(MaJiangDef.stringToCard("7条"));
+        Assert.assertEquals(MaJiangDef.TYPE_TONG,MaJiangDef.type(result.value));
+
+        p.cards=MaJiangDef.stringToCards("5条,2筒,3筒,5筒");
+        result= p.mopai(MaJiangDef.stringToCard("9条"));
+        Assert.assertEquals(MaJiangDef.TYPE_TONG,MaJiangDef.type(result.value));
+
+        p.cards=MaJiangDef.stringToCards("9条,2筒,3筒,5筒");
+        result= p.mopai(MaJiangDef.stringToCard("5条"));
+        Assert.assertEquals(MaJiangDef.TYPE_TONG,MaJiangDef.type(result.value));
+    }
+
+    @Test
+    public void testJiFan(){
+        Player p=new Player();
+        p.cards=MaJiangDef.stringToCards("1条,1条.1条,2条");
+        p.cardsOnTable=MaJiangDef.stringToCards("9条,9条,9条,9条");
+        JiZhang jiZhang=new JiZhang();
+        int fan=jiZhang.jiFan(p,MaJiangDef.stringToCard("3条"));
+        Assert.assertEquals(3,fan);
     }
 }

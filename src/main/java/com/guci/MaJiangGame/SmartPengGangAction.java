@@ -14,6 +14,7 @@ public class SmartPengGangAction extends BasicPengGangAction{
 //                return gang(input,me);
 //            }
 //        }
+
         boolean b= AIUtil.gangAI(me.cards,gui,input,0);
         if(b) return gang(input,me);
         return processPeng(input,me);

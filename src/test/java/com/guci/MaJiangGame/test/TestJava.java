@@ -11,7 +11,7 @@ import java.util.Set;
 public class TestJava {
     @Test
     public void testSwitch(){
-        HuaShe x=HuaShe.TONG;
+        HuaShe x=HuaShe.TIAO;
         switch (x){
             case WAN:
                 System.out.println("wan");
@@ -26,8 +26,7 @@ public class TestJava {
     }
 
     @Test
-    public void testLoop(){
-        int x= (int) Math.pow(2,4);
-        System.out.println(x);
+    public void test(){
+
     }
 }

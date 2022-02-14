@@ -1,6 +1,7 @@
 package com.guci.MaJiangGame;
 
 import com.github.esrrhs.majiang_algorithm.HuUtil;
+import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,7 @@ public class GameUtil {
      * @param cards
      * @return
      */
-    public boolean KeXiaJiao(List<Integer> cards){
+    public static boolean KeXiaJiao(List<Integer> cards){
         for (Integer i : cards){
             List<Integer> temp=new ArrayList<>(cards);
             temp.remove(i);
@@ -21,5 +22,13 @@ public class GameUtil {
             if (l.size()>0) return true;
         }
         return false;
+    }
+
+    public static HuaShe type(int input){
+        int x=MaJiangDef.type(input);
+        if (x==MaJiangDef.TYPE_WAN) return HuaShe.WAN;
+        if (x==MaJiangDef.TYPE_TONG) return HuaShe.TONG;
+        if (x==MaJiangDef.TYPE_TIAO) return HuaShe.TIAO;
+        return null;
     }
 }
