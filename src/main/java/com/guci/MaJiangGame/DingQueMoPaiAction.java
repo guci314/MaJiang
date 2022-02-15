@@ -12,12 +12,8 @@ public class DingQueMoPaiAction implements MoPaiAction{
     public ActionResult go(int input, Player me) {
         me.cards.add(input);
         if (me.hasQue()){
-            if (HuUtil.isHuExtra(me.cards, gui, 0)){
-                ActionResult r=new ActionResult(ResultCode.ZiMo,input);
-                r.from=me.matrix;
-                r.to=me;
-                return r;
-            }
+            me.cards.remove((Integer) input);
+            return new ActionResult(ResultCode.NoAction,null);
         }
         //如果能杠,则无行为
         me.cards.remove((Integer) input);

@@ -3,6 +3,7 @@ package com.guci.MaJiangGame.QingYiSe;
 import com.guci.MaJiangGame.*;
 
 public class QingYiSePengGangAction extends BasicPengGangAction {
+    HuaShe qingYiShe;
     @Override
     protected ActionResult processPeng(int input, Player me) {
         //如果可做清一色

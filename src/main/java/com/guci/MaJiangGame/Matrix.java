@@ -2,6 +2,7 @@ package com.guci.MaJiangGame;
 
 import com.github.esrrhs.majiang_algorithm.AIUtil;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
+import com.guci.MaJiangGame.QingYiSe.QingYiSeDianPaoHuAction;
 import com.guci.MaJiangGame.QingYiSe.QingYiSePengGangAction;
 import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
 
@@ -12,7 +13,7 @@ import java.util.List;
 public class Matrix {
     public boolean showDetail = false;
     public List<Player> players = new ArrayList<>();
-    JiZhang jiZhang;
+    public JiZhang jiZhang;
     /**
      * 未显的牌
      */
@@ -30,8 +31,8 @@ public class Matrix {
      * 初始化
      */
     public void init() {
-        jiZhang=new JiZhang();
-        jiZhang.matrix=this;
+        jiZhang = new JiZhang();
+        jiZhang.matrix = this;
         Player p1 = new Player();
         p1.id = 1;
         addBasicAction(p1);
@@ -64,12 +65,14 @@ public class Matrix {
         players.add(p);
     }
 
-    public void createQingYiSeAction(){
-        for (Player p : players){
+    public void createQingYiSeAction() {
+        for (Player p : players) {
             p.moPaiActionList.clear();
             p.moPaiActionList.add(new DingQueMoPaiAction());
             p.moPaiActionList.add(new IsolatingMoPaiAction());
             p.moPaiActionList.add(new QingYiSheMoPaiAction());
+            p.dianPaoHuActionList.clear();
+            p.dianPaoHuActionList.add(new QingYiSeDianPaoHuAction());
             p.pengGangActionList.clear();
             p.pengGangActionList.add(new QingYiSePengGangAction());
         }
@@ -131,7 +134,7 @@ public class Matrix {
             System.out.println(currentPlayer);
             System.out.println("摸到的牌:" + MaJiangDef.cardToString(pai));
             double n = AIUtil.calc(currentPlayer.cards, new ArrayList<>());
-            System.out.println("牌面价值"+n);
+            System.out.println("牌面价值" + n);
         }
         ActionResult out = currentPlayer.mopai(pai);
         if (showDetail) {
@@ -139,9 +142,9 @@ public class Matrix {
             System.out.println("返回代码:" + out.code);
             if (out.value != null) System.out.println("打出的牌:" + MaJiangDef.cardToString(out.value));
             System.out.println(currentPlayer);
-            System.out.println("手上的牌张数:"+currentPlayer.cards.size());
+            System.out.println("手上的牌张数:" + currentPlayer.cards.size());
             double n = AIUtil.calc(currentPlayer.cards, new ArrayList<>());
-            System.out.println("牌面价值"+n);
+            System.out.println("牌面价值" + n);
         }
 
         //此玩家已经胡牌
@@ -154,20 +157,20 @@ public class Matrix {
             out.to = currentPlayer;
             cardsOnTable.add(out.value);
             currentPlayer.cards.remove((Integer) out.value);
-            if (showDetail){
-                System.out.println("自摸 player"+currentPlayer.id+" 牌:"+MaJiangDef.cardToString(pai));
+            if (showDetail) {
+                System.out.println("自摸 player" + currentPlayer.id + " 牌:" + MaJiangDef.cardToString(pai));
             }
             settle(out);
             currentPlayer = currentPlayer.nextPlayer;
         } else if (out.code == ResultCode.MingGang) {
-            if (showDetail){
-                System.out.println("明杠 player"+currentPlayer.id+" 牌:"+MaJiangDef.cardToString(pai));
+            if (showDetail) {
+                System.out.println("明杠 player" + currentPlayer.id + " 牌:" + MaJiangDef.cardToString(pai));
             }
             settle(out);
             return;
         } else if (out.code == ResultCode.AnGang) {
-            if (showDetail){
-                System.out.println("暗杠 player"+currentPlayer.id+" 牌:"+MaJiangDef.cardToString(pai));
+            if (showDetail) {
+                System.out.println("暗杠 player" + currentPlayer.id + " 牌:" + MaJiangDef.cardToString(pai));
             }
             settle(out);
             return;
@@ -176,8 +179,8 @@ public class Matrix {
         else {
             while (true) {
                 ActionResult r = otherPlayerLookCard(out);
-                out=r;
-                if (r.code==ResultCode.NoAction) {
+                out = r;
+                if (r.code == ResultCode.NoAction) {
                     cardsOnTable.add(out.value);
                     break;
                 }
@@ -199,8 +202,9 @@ public class Matrix {
             if (p != currentPlayer) {
                 ActionResult r = p.dianPaoHu(out.value);
                 if (r.code == ResultCode.DianPaoHu) {
-                    if(showDetail){
-                        System.out.println("点炮胡 from player"+currentPlayer.id+" to player"+p.id+" 牌"+MaJiangDef.cardToString(out.value));
+                    if (showDetail) {
+                        System.out.println("-----------------------------------------------------------");
+                        System.out.println("点炮胡 from player" + currentPlayer.id + " to player" + p.id + " 牌" + MaJiangDef.cardToString(out.value));
                     }
                     r.from = currentPlayer;
                     r.to = p;
@@ -219,6 +223,7 @@ public class Matrix {
 
     /**
      * 其它玩家碰杠牌
+     *
      * @param out
      */
     private ActionResult pengGang(ActionResult out) {
@@ -227,18 +232,25 @@ public class Matrix {
                 ActionResult r = p.pengGang(out.value);
                 if (r.code == ResultCode.Peng || r.code == ResultCode.PengGang) {
                     if (showDetail) {
-                        if (r.code==ResultCode.Peng){
-                            System.out.println("碰 player"+p.id+" from player"+currentPlayer.id+" 牌:"+ MaJiangDef.cardToString(out.value));
+                        if (r.code == ResultCode.Peng) {
+                            System.out.println("----------------------------------------------------------------");
+                            System.out.println("碰 player" + p.id + " from player" + currentPlayer.id + " 碰牌:"
+                                    + MaJiangDef.cardToString(out.value)
+                                    + "  打出的牌" + MaJiangDef.cardToString(r.value));
+                            System.out.println(p);
                         }
-                        if (r.code==ResultCode.PengGang){
-                            System.out.println("碰杠 player"+p.id+" from player"+currentPlayer.id+" 牌:"+ MaJiangDef.cardToString(out.value));
+                        if (r.code == ResultCode.PengGang) {
+                            System.out.println("----------------------------------------------------------------");
+                            System.out.println("碰杠 player" + p.id + " from player" + currentPlayer.id + " 碰杠牌:"
+                                    + MaJiangDef.cardToString(out.value)
+                                    + "  打出的牌" + MaJiangDef.cardToString(r.value));
                         }
                     }
                     //out.value = r.value;
                     //out.from = p;
                     //somebodyPengGang = true;
                     //if (r.code==ResultCode.PengGang) settle(out);
-                    currentPlayer=p;
+                    currentPlayer = p;
                     return r;
                 }
             }
@@ -249,9 +261,9 @@ public class Matrix {
     /**
      * 玩一局游戏
      */
-    public void play(){
-        currentPlayer=players.get(0);
-        while (!gameover()){
+    public void play() {
+        currentPlayer = players.get(0);
+        while (!gameover()) {
             step();
         }
     }
@@ -259,19 +271,19 @@ public class Matrix {
     /**
      * 结账
      */
-    void settle(ActionResult result){
+    void settle(ActionResult result) {
         jiZhang.settle(result);
     }
 
-    public void print(){
-        for (Player p : players){
+    public void print() {
+        for (Player p : players) {
             System.out.println(p);
         }
     }
 
-    public void printJingE(){
-        for (Player p : players){
-            System.out.println(String.format("Player%d %d",p.id,p.jinE));
+    public void printJingE() {
+        for (Player p : players) {
+            System.out.println(String.format("Player%d %d", p.id, p.jinE));
         }
     }
 }

@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor
 public class Player {
@@ -25,7 +24,7 @@ public class Player {
     /**
      * 清一色短张阈值
      */
-    int threshold=4;
+    public int threshold=4;
 
     @Override
     public java.lang.String toString() {
@@ -106,32 +105,47 @@ public class Player {
         return false;
     }
 
+    /**
+     * 已经是清一色
+     * @return
+     */
+    public boolean isQingYiShe(){
+        List<Integer> all=new ArrayList<>();
+        all.addAll(cards);
+        all.addAll(cardsOnTable);
+        if(all.stream().allMatch(x->x>= MaJiangDef.TIAO1 && x<=MaJiangDef.TIAO9)) return true;
+        if(all.stream().allMatch(x->x>= MaJiangDef.WAN1 && x<=MaJiangDef.WAN9)) return true;
+        if(all.stream().allMatch(x->x>= MaJiangDef.TONG1 && x<=MaJiangDef.TONG9)) return true;
+        return false;
+    }
 
     /**
      * 判定是否做清一色. 如果是则返回花色.如果不做则返回null
      * @return
      */
-    public HuaShe zuoQingYiShe(){
+    public HuaShe keZuoQingYiShe(){
         // TODO: 2022/2/15 根据剩余张数和短牌张数的比值决策清一色
-        if (cardsOnTable.stream().anyMatch(x->isQue(x))) return null;
         List<Integer> all=new ArrayList<>();
         all.addAll(cards);
         all.addAll(cardsOnTable);
         long lengthOfWAN=all.stream().filter(x->x>=MaJiangDef.WAN1 && x<=MaJiangDef.WAN9).count();
         long lengthOfTIAO=all.stream().filter(x->x>=MaJiangDef.TIAO1 && x<=MaJiangDef.TIAO9).count();
         long lengthOfTONG=all.stream().filter(x->x>=MaJiangDef.TONG1 && x<=MaJiangDef.TONG9).count();
+        HuaShe changHuaShe = null;
         if (dingQue==HuaShe.TIAO){
-            if (lengthOfWAN<=threshold) return HuaShe.TONG;
-            if (lengthOfTONG<=threshold) return HuaShe.WAN;
+            if (lengthOfWAN<=threshold) changHuaShe= HuaShe.TONG;
+            if (lengthOfTONG<=threshold) changHuaShe= HuaShe.WAN;
         }
         if (dingQue==HuaShe.TONG){
-            if (lengthOfTIAO<=threshold) return HuaShe.WAN;
-            if (lengthOfWAN<=threshold) return HuaShe.TIAO;
+            if (lengthOfTIAO<=threshold) changHuaShe= HuaShe.WAN;
+            if (lengthOfWAN<=threshold) changHuaShe= HuaShe.TIAO;
         }
         if (dingQue==HuaShe.WAN){
-            if (lengthOfTIAO<=threshold) return HuaShe.TONG;
-            if (lengthOfTONG<=threshold) return HuaShe.TIAO;
+            if (lengthOfTIAO<=threshold) changHuaShe= HuaShe.TONG;
+            if (lengthOfTONG<=threshold) changHuaShe= HuaShe.TIAO;
         }
-        return null;
+        HuaShe finalChangHuaShe = changHuaShe;
+        if (cardsOnTable.stream().anyMatch(x->GameUtil.type(x) != finalChangHuaShe)) return null;
+        return changHuaShe;
     }
 }

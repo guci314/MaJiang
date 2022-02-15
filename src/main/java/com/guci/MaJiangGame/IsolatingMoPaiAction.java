@@ -1,6 +1,5 @@
 package com.guci.MaJiangGame;
 
-import com.github.esrrhs.majiang_algorithm.HuUtil;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 
 import java.util.ArrayList;
@@ -11,15 +10,15 @@ public class IsolatingMoPaiAction implements MoPaiAction{
     List<Integer> gui = new ArrayList<>();
     @Override
     public ActionResult go(int input, Player me) {
-        if (me.zuoQingYiShe() != null) return new ActionResult(ResultCode.NoAction,null);
+        if (me.keZuoQingYiShe() != null) return new ActionResult(ResultCode.NoAction,null);
         me.cards.add(input);
-        if (HuUtil.isHuExtra(me.cards, gui, 0)){
-            ActionResult r=new ActionResult(ResultCode.ZiMo,input);
-            r.from=me.matrix;
-            r.to=me;
-            me.cards.remove((Integer) input);
-            return r;
-        }
+//        if (HuUtil.isHuExtra(me.cards, gui, 0)){
+//            ActionResult r=new ActionResult(ResultCode.ZiMo,input);
+//            r.from=me.matrix;
+//            r.to=me;
+//            me.cards.remove((Integer) input);
+//            return r;
+//        }
 
         //如果能杠,则无行为
         me.cards.remove((Integer) input);

@@ -12,12 +12,12 @@ import java.util.List;
  */
 public class BasicPengGangAction implements PengGangAction {
     List<Integer> gui = new ArrayList<>();
-    protected HuaShe qingYiShe;
+    //protected HuaShe qingYiShe;
     @Override
     public ActionResult go(int input, Player me) {
         if (me.status==Status.Hu) return new ActionResult(ResultCode.NoAction,null);
         if (me.isQue(input)) return new ActionResult(ResultCode.NoAction,null);
-        qingYiShe=me.zuoQingYiShe();
+        //qingYiShe=me.zuoQingYiShe();
         if (Collections.frequency(me.cards,(Integer)input)==3){
             return gang(input,me);
         }

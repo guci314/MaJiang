@@ -12,11 +12,9 @@ public class BasicMoPaiAction implements MoPaiAction {
         me.cards.add(input);
         //是否自摸
         if (HuUtil.isHuExtra(me.cards, gui, 0)){
-            System.out.println("自摸");
             ActionResult result=new ActionResult(ResultCode.ZiMo,input);
             result.from=me.matrix;
             result.to=me;
-            System.out.println(result.value);
             return result;
         }
         //是否明杠. 默认算法始终明杠

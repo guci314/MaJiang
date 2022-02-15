@@ -443,7 +443,7 @@ public class TestMatrix {
     public void testPlay(){
         // TODO: 2022/2/14 完善日志 用于大数据分析
         Matrix matrix=new Matrix();
-        //matrix.showDetail=true;
+        matrix.showDetail=true;
         matrix.init();
         matrix.reset();
         System.out.println("游戏开始之前");
@@ -465,6 +465,7 @@ public class TestMatrix {
         matrix.play();
         System.out.println("游戏结束之后");
         matrix.print();
+        matrix.printJingE();
     }
 
     @Test
@@ -472,8 +473,12 @@ public class TestMatrix {
         int total=0;
         Matrix matrix=new Matrix();
         matrix.init();
-        //matrix.showDetail=true;
-        for(int i=0;i<1000;i++){
+        //matrix.createQingYiSeAction();
+        for (Player p: matrix.players){
+            p.dianPaoHuActionList.clear();
+            p.dianPaoHuActionList.add(new RenPaoAction());
+        }
+        for(int i=0;i<10000;i++){
             matrix.reset();
             matrix.play();
             for (Player p:matrix.players){
@@ -481,6 +486,7 @@ public class TestMatrix {
             }
         }
         System.out.println(total);
+        matrix.printJingE();
     }
 
     @Test
