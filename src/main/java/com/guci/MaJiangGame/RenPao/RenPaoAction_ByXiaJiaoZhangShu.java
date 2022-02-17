@@ -19,6 +19,10 @@ public class RenPaoAction_ByXiaJiaoZhangShu extends BasicDianPaoHuAction {
         tmp.add(input);
         if (HuUtil.isHuExtra(tmp, gui, 0)){
             //检测是否忍炮
+            if (me.matrix.players.stream().filter(x->x.status==Status.Playing).count() != 4)
+                return new ActionResult(ResultCode.NoAction,null);
+            if (me.matrix.cards.size()<28)
+                return new ActionResult(ResultCode.NoAction,null);
             List<Integer> ting= HuUtil.isTingExtra(me.cards,gui);
             int total=ting.size()*4;
             for (Integer card:ting){

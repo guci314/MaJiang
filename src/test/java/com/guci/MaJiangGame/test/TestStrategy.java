@@ -7,7 +7,7 @@ import com.guci.MaJiangGame.QingYiSe.QingYiSePengGangAction;
 import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
 import com.guci.MaJiangGame.RenPao.RenPaoAction_ByActivePlayerNumber;
 import com.guci.MaJiangGame.RenPao.RenPaoAction_ByCardsNumber;
-import com.guci.MaJiangGame.RenPao.RenPaoAction_ByJiKanPai;
+import com.guci.MaJiangGame.RenPao.RenPaoAction_ByKeGangPai;
 import com.guci.MaJiangGame.RenPao.RenPaoAction_ByXiaJiaoZhangShu;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -77,7 +77,7 @@ public class TestStrategy {
             for (Player p1 :matrix.players){
                 p1.jinE=0;
             }
-            for (int i = 0; i < 100000; i++) {
+            for (int i = 0; i < 10000; i++) {
                 matrix.reset();
 //                matrix.players.get(0).status=Status.Hu;
 //                matrix.players.get(1).status=Status.Hu;
@@ -128,13 +128,13 @@ public class TestStrategy {
         p.dianPaoHuActionList.clear();
         RenPaoAction_ByXiaJiaoZhangShu rp=new RenPaoAction_ByXiaJiaoZhangShu();
         p.dianPaoHuActionList.add(rp);
-        for(int n=4;n<15;n++) {
+        for(int n=1;n<15;n++) {
             rp.threshold=n;
             System.out.println("胡牌张数阈值="+n);
             for (Player p1 :matrix.players){
                 p1.jinE=0;
             }
-            for (int i = 0; i < 100000; i++) {
+            for (int i = 0; i < 10000; i++) {
                 matrix.reset();
                 matrix.play();
             }
@@ -144,7 +144,8 @@ public class TestStrategy {
 
     /**
      * 根据手上坎牌数量决定是否忍炮
-     * 结论 手上有一坎牌时要忍炮
+     * 结论 手上有一坎可杠牌 且玩家数目为4时要忍炮
+     * 胡牌张数最优值 4
      */
     @Test
     public void testRenPao3(){
@@ -153,13 +154,21 @@ public class TestStrategy {
         matrix.createQingYiSeAction();
         Player p=matrix.players.get(2);
         p.dianPaoHuActionList.clear();
-        RenPaoAction_ByJiKanPai rp=new RenPaoAction_ByJiKanPai();
+        RenPaoAction_ByKeGangPai rp=new RenPaoAction_ByKeGangPai();
         p.dianPaoHuActionList.add(rp);
-        for (int i = 0; i < 100000; i++) {
-            matrix.reset();
-            matrix.play();
+        for (int n=1;n<10;n++) {
+            p.threshold_mopaicishu=n;
+            System.out.println("胡牌张数阈值:"+n);
+            for (Player p1 :matrix.players){
+                p1.jinE=0;
+            }
+            for (int i = 0; i < 100000; i++) {
+                matrix.reset();
+                matrix.play();
+            }
+            matrix.printJingE();
         }
-        matrix.printJingE();
+
     }
 
     /**
