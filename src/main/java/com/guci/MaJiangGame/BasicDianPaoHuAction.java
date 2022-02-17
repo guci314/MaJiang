@@ -9,7 +9,7 @@ import java.util.List;
  * 点炮胡,非自摸
  */
 public class BasicDianPaoHuAction implements DianPaoHuAction {
-    List<Integer> gui = new ArrayList<>();
+    protected List<Integer> gui = new ArrayList<>();
     @Override
     public ActionResult go(int input, Player me) {
         if (me.status==Status.Hu) return new ActionResult(ResultCode.NoAction,null);

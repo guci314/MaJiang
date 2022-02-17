@@ -19,12 +19,15 @@ public class JiZhang {
             fan++;
             if (fan>5) fan=5;
             int n=(int) Math.pow(2,fan);
-            result.to.jinE=result.to.jinE+n*3;
+            int yingsou=0;
             for(Player p : result.to.matrix.players){
+                if (p.status==Status.Hu) continue;
                 if (p != result.to){
                     p.jinE=p.jinE-n;
+                    yingsou=yingsou+n;
                 }
             }
+            result.to.jinE=result.to.jinE+yingsou;
         }
 
         if (result.code==ResultCode.DianPaoHu){
@@ -37,33 +40,43 @@ public class JiZhang {
 
         if (result.code==ResultCode.AnGang){
             //System.out.println("暗杠 "+result.to.id);
-            result.to.jinE=result.to.jinE+6;
+            int yingsou=0;
             for (Player p : result.to.matrix.players){
+                if (p.status==Status.Hu) continue;
                 if (p != result.to){
                     p.jinE=p.jinE-2;
+                    yingsou=yingsou+2;
                 }
             }
+            result.to.jinE=result.to.jinE+yingsou;
         }
 
         if (result.code==ResultCode.MingGang){
             //System.out.println("明杠 "+result.to.id);
-            result.to.jinE=result.to.jinE+3;
+            int yingsou=0;
             for (Player p : result.to.matrix.players){
+                if (p.status==Status.Hu) continue;
                 if (p != result.to){
                     p.jinE=p.jinE-1;
+                    yingsou=yingsou+1;
                 }
             }
+            result.to.jinE=result.to.jinE+yingsou;
         }
 
         if (result.code==ResultCode.PengGang){
             //System.out.println("碰杠 "+result.to.id);
-            result.to.jinE=result.to.jinE+4;
-            ((Player)result.from).jinE=((Player)result.from).jinE-2;
+            int yingsou=0;
+            ((Player)result.from).jinE=((Player)result.from).jinE-1;
+            yingsou=yingsou+1;
             for(Player p : result.to.matrix.players){
-                if (p != result.to && p != result.from){
+                if (p.status==Status.Hu) continue;
+                if (p != result.to ){
                     p.jinE=p.jinE-1;
+                    yingsou=yingsou+1;
                 }
             }
+            result.to.jinE=result.to.jinE+yingsou;
         }
     }
 
@@ -73,7 +86,6 @@ public class JiZhang {
      * @return
      */
     public int jiFan(Player p,int input){
-        // TODO: 2022/2/15 加入清一色计番
         List<Integer> all=new ArrayList<>();
         all.add((Integer) input);
         all.addAll(p.cards);

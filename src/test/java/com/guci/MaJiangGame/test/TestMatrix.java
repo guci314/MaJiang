@@ -5,6 +5,7 @@ import com.github.esrrhs.majiang_algorithm.HuUtil;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 import com.guci.MaJiangGame.*;
 import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
+import com.guci.MaJiangGame.RenPao.RenPaoAction_ByActivePlayerNumber;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -476,9 +477,9 @@ public class TestMatrix {
         //matrix.createQingYiSeAction();
         for (Player p: matrix.players){
             p.dianPaoHuActionList.clear();
-            p.dianPaoHuActionList.add(new RenPaoAction());
+            p.dianPaoHuActionList.add(new RenPaoAction_ByActivePlayerNumber());
         }
-        for(int i=0;i<10000;i++){
+        for(int i=0;i<10;i++){
             matrix.reset();
             matrix.play();
             for (Player p:matrix.players){
@@ -540,8 +541,8 @@ public class TestMatrix {
 
         Assert.assertEquals(Status.Hu,matrix.players.get(2).status);
         Assert.assertTrue(matrix.currentPlayer==matrix.players.get(2));
-        Assert.assertEquals(-5,matrix.players.get(1).jinE);
-        Assert.assertEquals(-3,matrix.players.get(2).jinE);
+        Assert.assertEquals(-8,matrix.players.get(1).jinE);
+        Assert.assertEquals(0,matrix.players.get(2).jinE);
         //System.out.println(matrix.currentPlayer.id);
     }
 

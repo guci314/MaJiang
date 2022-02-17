@@ -24,7 +24,9 @@ public class Player {
     /**
      * 清一色短张阈值
      */
-    public int threshold=4;
+    public int threshold_duanzhang =3;
+
+    public int threshold_mopaicishu=10;
 
     @Override
     public java.lang.String toString() {
@@ -133,19 +135,21 @@ public class Player {
         long lengthOfTONG=all.stream().filter(x->x>=MaJiangDef.TONG1 && x<=MaJiangDef.TONG9).count();
         HuaShe changHuaShe = null;
         if (dingQue==HuaShe.TIAO){
-            if (lengthOfWAN<=threshold) changHuaShe= HuaShe.TONG;
-            if (lengthOfTONG<=threshold) changHuaShe= HuaShe.WAN;
+            if (lengthOfWAN<= threshold_duanzhang) changHuaShe= HuaShe.TONG;
+            if (lengthOfTONG<= threshold_duanzhang) changHuaShe= HuaShe.WAN;
         }
         if (dingQue==HuaShe.TONG){
-            if (lengthOfTIAO<=threshold) changHuaShe= HuaShe.WAN;
-            if (lengthOfWAN<=threshold) changHuaShe= HuaShe.TIAO;
+            if (lengthOfTIAO<= threshold_duanzhang) changHuaShe= HuaShe.WAN;
+            if (lengthOfWAN<= threshold_duanzhang) changHuaShe= HuaShe.TIAO;
         }
         if (dingQue==HuaShe.WAN){
-            if (lengthOfTIAO<=threshold) changHuaShe= HuaShe.TONG;
-            if (lengthOfTONG<=threshold) changHuaShe= HuaShe.TIAO;
+            if (lengthOfTIAO<= threshold_duanzhang) changHuaShe= HuaShe.TONG;
+            if (lengthOfTONG<= threshold_duanzhang) changHuaShe= HuaShe.TIAO;
         }
         HuaShe finalChangHuaShe = changHuaShe;
         if (cardsOnTable.stream().anyMatch(x->GameUtil.type(x) != finalChangHuaShe)) return null;
+        int cisu= (int) (matrix.cards.size()/matrix.players.stream().filter(x->x.status==Status.Playing).count());
+        if (cisu<threshold_mopaicishu) return null;
         return changHuaShe;
     }
 }
