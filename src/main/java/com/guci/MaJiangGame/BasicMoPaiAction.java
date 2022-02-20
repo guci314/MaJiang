@@ -15,6 +15,7 @@ public class BasicMoPaiAction implements MoPaiAction {
             ActionResult result=new ActionResult(ResultCode.ZiMo,input);
             result.from=me.matrix;
             result.to=me;
+            result.in=input;
             return result;
         }
         //是否明杠. 默认算法始终明杠
@@ -64,6 +65,7 @@ public class BasicMoPaiAction implements MoPaiAction {
 //        }
         ActionResult result=new ActionResult(ResultCode.ChuPai,(Integer)out);
         result.from=me;
+        result.in=input;
         return result;
     }
 
@@ -73,6 +75,7 @@ public class BasicMoPaiAction implements MoPaiAction {
         ActionResult result= new ActionResult(ResultCode.MingGang, input);
         result.from= me.matrix;
         result.to= me;
+        result.in=input;
         return result;
     }
 
@@ -84,6 +87,7 @@ public class BasicMoPaiAction implements MoPaiAction {
         ActionResult result= new ActionResult(ResultCode.AnGang, input);
         result.from= me.matrix;
         result.to= me;
+        result.in=input;
         return result;
     }
 }

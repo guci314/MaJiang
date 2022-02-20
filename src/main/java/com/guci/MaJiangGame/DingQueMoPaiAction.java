@@ -32,6 +32,7 @@ public class DingQueMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) n);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
                 break;
@@ -43,6 +44,7 @@ public class DingQueMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) n);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
                 break;
@@ -54,6 +56,7 @@ public class DingQueMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) n);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
                 break;

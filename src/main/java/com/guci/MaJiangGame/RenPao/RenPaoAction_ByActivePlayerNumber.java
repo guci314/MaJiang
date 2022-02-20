@@ -6,7 +6,7 @@ import com.guci.MaJiangGame.*;
  * 忍炮策略
  */
 public class RenPaoAction_ByActivePlayerNumber extends BasicDianPaoHuAction {
-    public int threshold_active_player = 3;
+    public int threshold_active_player = 4;
     @Override
     public ActionResult go(int input, Player me) {
         long numberOfActivePlayer=me.matrix.players.stream().filter(p->p.status== Status.Playing).count();

@@ -6,6 +6,11 @@ import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 import com.guci.MaJiangGame.*;
 import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
 import com.guci.MaJiangGame.RenPao.RenPaoAction_ByActivePlayerNumber;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,10 +20,17 @@ import java.util.Collections;
 import java.util.List;
 
 public class TestMatrix {
+    static MongoCollection<Document> collection;
+    static MongoCollection<Document>  dataForBasicAction;
     @BeforeClass
     public static void setup(){
         HuUtil.load();
         AIUtil.load();
+        String uri = "mongodb://localhost:27017";
+        MongoClient mongoClient = MongoClients.create(uri);
+        MongoDatabase database = mongoClient.getDatabase("majiang");
+        collection = database.getCollection("test");
+        dataForBasicAction=database.getCollection("dataForBasicAction");
     }
 
     @Test
@@ -45,7 +57,7 @@ public class TestMatrix {
         String spai="3万";
         int pai=MaJiangDef.stringToCard(spai);
         ActionResult result=player.mopai(pai);
-        int out=result.value;
+        int out=result.out;
         String sout=MaJiangDef.cardToString(out);
         Assert.assertEquals("6万",sout);
 
@@ -54,7 +66,7 @@ public class TestMatrix {
         player.cards=cards;
         spai="3筒";
         pai=MaJiangDef.stringToCard(spai);
-        out=player.mopai(pai).value;
+        out=player.mopai(pai).out;
         sout=MaJiangDef.cardToString(out);
         Assert.assertEquals("5筒",sout);
 
@@ -66,7 +78,7 @@ public class TestMatrix {
         pai=MaJiangDef.stringToCard(spai);
         result=player.mopai(pai);
         Assert.assertEquals(ResultCode.ZiMo,result.code);
-        Assert.assertEquals("1万",MaJiangDef.cardToString(result.value));
+        Assert.assertEquals("1万",MaJiangDef.cardToString(result.out));
         Assert.assertTrue(result.to==player);
         Assert.assertEquals(Status.Hu,player.status);
 
@@ -89,7 +101,7 @@ public class TestMatrix {
         player.cards=cards;
         String spai="7万";
         int pai=MaJiangDef.stringToCard(spai);
-        int out=player.mopai(pai).value;
+        int out=player.mopai(pai).out;
         String sout=MaJiangDef.cardToString(out);
         Assert.assertEquals("1条",sout);
 
@@ -108,7 +120,7 @@ public class TestMatrix {
         player.status=Status.Playing;
         spai="2万";
         pai=MaJiangDef.stringToCard(spai);
-        out=player.mopai(pai).value;
+        out=player.mopai(pai).out;
         sout=MaJiangDef.cardToString(out);
         Assert.assertEquals("2万,3万,5筒,5筒 摸到 2万 应该打出","2万",sout);
 
@@ -120,7 +132,7 @@ public class TestMatrix {
         player.status=Status.Playing;
         spai="5万";
         pai=MaJiangDef.stringToCard(spai);
-        out=player.mopai(pai).value;
+        out=player.mopai(pai).out;
         sout=MaJiangDef.cardToString(out);
         System.out.println(sout);
         Collections.sort(player.cards);
@@ -441,10 +453,14 @@ public class TestMatrix {
     }
 
     @Test
+    public void emptyDatabase(){
+        collection.deleteMany(new Document());
+    }
+    @Test
     public void testPlay(){
-        // TODO: 2022/2/14 完善日志 用于大数据分析
         Matrix matrix=new Matrix();
-        matrix.showDetail=true;
+
+        //matrix.showDetail=true;
         matrix.init();
         matrix.reset();
         System.out.println("游戏开始之前");
@@ -466,20 +482,29 @@ public class TestMatrix {
         matrix.play();
         System.out.println("游戏结束之后");
         matrix.print();
-        matrix.printJingE();
+        //matrix.printJingE();
     }
 
     @Test
     public void testPerformance(){
+        dataForBasicAction.deleteMany(new Document());
         int total=0;
         Matrix matrix=new Matrix();
         matrix.init();
+        matrix.collection=dataForBasicAction;
+
         //matrix.createQingYiSeAction();
-        for (Player p: matrix.players){
-            p.dianPaoHuActionList.clear();
-            p.dianPaoHuActionList.add(new RenPaoAction_ByActivePlayerNumber());
-        }
-        for(int i=0;i<10;i++){
+//        for (Player p: matrix.players){
+//            p.dianPaoHuActionList.clear();
+//            p.dianPaoHuActionList.add(new RenPaoAction_ByActivePlayerNumber());
+//        }
+        int couter=0;
+        for(int i=0;i<10000000;i++){
+            couter++;
+            if (couter>300){
+                System.out.println("局数:"+i);
+                couter=0;
+            }
             matrix.reset();
             matrix.play();
             for (Player p:matrix.players){
@@ -487,7 +512,7 @@ public class TestMatrix {
             }
         }
         System.out.println(total);
-        matrix.printJingE();
+        //matrix.printJingE();
     }
 
     @Test
@@ -626,15 +651,15 @@ public class TestMatrix {
         p.cardsOnTable=MaJiangDef.stringToCards("1条,1条,1条,2条,2条,2条");
         p.cards=MaJiangDef.stringToCards("5条,2筒,3筒,5筒"); //1条,2筒,3筒,5筒
         ActionResult result= p.mopai(MaJiangDef.stringToCard("7条"));
-        Assert.assertEquals(MaJiangDef.TYPE_TONG,MaJiangDef.type(result.value));
+        Assert.assertEquals(MaJiangDef.TYPE_TONG,MaJiangDef.type(result.out));
 
         p.cards=MaJiangDef.stringToCards("5条,2筒,3筒,5筒");
         result= p.mopai(MaJiangDef.stringToCard("9条"));
-        Assert.assertEquals(MaJiangDef.TYPE_TONG,MaJiangDef.type(result.value));
+        Assert.assertEquals(MaJiangDef.TYPE_TONG,MaJiangDef.type(result.out));
 
         p.cards=MaJiangDef.stringToCards("9条,2筒,3筒,5筒");
         result= p.mopai(MaJiangDef.stringToCard("5条"));
-        Assert.assertEquals(MaJiangDef.TYPE_TONG,MaJiangDef.type(result.value));
+        Assert.assertEquals(MaJiangDef.TYPE_TONG,MaJiangDef.type(result.out));
     }
 
     @Test

@@ -1,10 +1,13 @@
 package com.guci.MaJiangGame;
 
+import com.alibaba.fastjson.JSONObject;
+import com.github.esrrhs.majiang_algorithm.HuUtil;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 @NoArgsConstructor
@@ -26,19 +29,56 @@ public class Player {
      */
     public int threshold_duanzhang =3;
 
-    public int threshold_mopaicishu=10;
+    public int threshold_mopaicishu=4;
 
     @Override
     public java.lang.String toString() {
         Collections.sort(cards);
-        return "Player{" +
-                "id=" + id +
-                ",status="+status+
-                ", cards=" + MaJiangDef.cardsToString(cards) +
-                ",cardsOnTable="+MaJiangDef.cardsToString(cardsOnTable)+
-                //",anGangCards="+MaJiangDef.cardsToString(anGangCards)+
-                ",定缺="+ dingQue +
-                '}';
+        JSONObject object = new JSONObject();
+        object.put("id",id);
+        object.put("status",status);
+        object.put("cards",MaJiangDef.cardsToString(cards));
+        object.put("cardsOnTable",MaJiangDef.cardsToString(cardsOnTable));
+        object.put("DingQue",dingQue);
+        object.put("xiaJiaoZhangSu",xiaJiaoZhangSu());
+        object.put("numberOfKanPai",numberOfKanPai());
+        object.put("isQingYiShe",isQingYiShe());
+        return object.toJSONString();
+    }
+
+    /**
+     * 有几坎牌可杠
+     * @return
+     */
+    public int numberOfKanPai(){
+        int number=0;
+        HashSet<Integer> cardsSet=new HashSet<>(cards);
+        for (Integer c:cardsSet){
+            long l=cards.stream().filter(x->x==c).count();
+            if (l==3) {
+                if (matrix.cardsOnTable.stream().filter(x->x==c).count()==0) {
+                    number++;
+                }
+            }
+        }
+        return number;
+    }
+
+    public int xiaJiaoZhangSu(){
+        List<Integer> gui = new ArrayList<>();
+        List<Integer> ting= HuUtil.isTingExtra(cards,gui);
+        int total=ting.size()*4;
+        for (Integer card:ting){
+            long x=cards.stream().filter(x1->x1==card).count();
+            total= (int) (total-x);
+            x=matrix.cardsOnTable.stream().filter(x1->x1==card).count();
+            total= (int) (total-x);
+            for(Player p:matrix.players){
+                x=p.cardsOnTable.stream().filter(x1->x1==card).count();
+                total= (int) (total-x);
+            }
+        }
+        return total;
     }
 
     public ActionResult mopai(int pai){
@@ -150,6 +190,12 @@ public class Player {
         if (cardsOnTable.stream().anyMatch(x->GameUtil.type(x) != finalChangHuaShe)) return null;
         int cisu= (int) (matrix.cards.size()/matrix.players.stream().filter(x->x.status==Status.Playing).count());
         if (cisu<threshold_mopaicishu) return null;
+        // TODO: 2022/2/21 delete this
+//        if(changHuaShe !=null) {
+//            System.out.println("可做清一色 ");
+//            System.out.println(this);
+//            System.out.println("长张花色:" + changHuaShe);
+//        }
         return changHuaShe;
     }
 }

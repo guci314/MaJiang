@@ -37,6 +37,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -47,6 +48,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -57,6 +59,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -67,6 +70,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -77,6 +81,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -87,6 +92,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -103,6 +109,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -115,6 +122,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -127,6 +135,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -139,6 +148,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -151,6 +161,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -163,6 +174,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                     ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                     r.to=me;
                     r.from=me.matrix;
+                    r.in=input;
                     return r;
                 }
             }
@@ -176,6 +188,7 @@ public class IsolatingMoPaiAction implements MoPaiAction{
                 ActionResult r=new ActionResult(ResultCode.ChuPai,(Integer) i);
                 r.to=me;
                 r.from=me.matrix;
+                r.in=input;
                 return r;
             }
         }

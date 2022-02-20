@@ -19,6 +19,7 @@ public class QingYiSheMoPaiAction extends BasicMoPaiAction {
             ActionResult result=new ActionResult(ResultCode.ZiMo,input);
             result.from=me.matrix;
             result.to=me;
+            result.in=input;
             //System.out.println(result.value);
             return result;
         }
@@ -76,6 +77,7 @@ public class QingYiSheMoPaiAction extends BasicMoPaiAction {
                 me.cards.remove((Integer) x);
                 ActionResult result = new ActionResult(ResultCode.ChuPai, x);
                 result.from = me;
+                result.in=input;
                 return result;
             }
         }
@@ -117,6 +119,7 @@ public class QingYiSheMoPaiAction extends BasicMoPaiAction {
 //        }
         ActionResult result = new ActionResult(ResultCode.ChuPai, out);
         result.from = me;
+        result.in=input;
         return result;
     }
 }

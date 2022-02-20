@@ -32,5 +32,9 @@ public enum ResultCode {
     /**
      * 摸牌后出牌
      */
-    ChuPai
+    ChuPai,
+    /**
+     * 初始化
+     */
+    Init
 }

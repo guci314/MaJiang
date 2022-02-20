@@ -15,7 +15,7 @@ public class JiZhang {
     void settle(ActionResult result){
         if (result.code==ResultCode.ZiMo){
             //System.out.println("自摸 player"+result.to.id);
-            int fan=jiFan(result.to, result.value);
+            int fan=jiFan(result.to, result.out);
             fan++;
             if (fan>5) fan=5;
             int n=(int) Math.pow(2,fan);
@@ -32,7 +32,7 @@ public class JiZhang {
 
         if (result.code==ResultCode.DianPaoHu){
             //System.out.println("点炮胡 player"+result.to.id+"  点炮者 "+((Player)result.from).id);
-            int fan=jiFan(result.to, result.value);
+            int fan=jiFan(result.to, result.out);
             int n=(int) Math.pow(2,fan);
             ((Player)result.from).jinE=((Player)result.from).jinE-n;
             ((Player)result.to).jinE=((Player)result.to).jinE+n;

@@ -49,7 +49,9 @@ public class BasicPengGangAction implements PengGangAction {
         int rvalue= AIUtil.outAI(me.cards,gui);
         me.cards.remove((Integer) rvalue);
         ActionResult result=new ActionResult(ResultCode.Peng, (Integer) rvalue);
-        result.from=me;
+        result.to=me;
+        result.from=me.matrix.currentPlayer;
+        result.in=input;
 //        if (me.matrix.showDetail){
 //            System.out.println("碰  Player"+me.id+" "+ MaJiangDef.cardToString(result.value));
 //        }
@@ -66,6 +68,8 @@ public class BasicPengGangAction implements PengGangAction {
         ActionResult r=new ActionResult(ResultCode.PengGang,(Integer) input);
         r.to=me;
         r.from=me.matrix.currentPlayer;
+        r.in=input;
+        me.matrix.saveStatus(r);
         //System.out.println("碰杠 player"+me.id+" "+MaJiangDef.cardToString(r.value));
         me.matrix.settle(r);
         int pai=me.matrix.cards.remove(0);
