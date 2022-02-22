@@ -15,7 +15,7 @@ public class QingYiSheMoPaiAction extends BasicMoPaiAction {
         //是否自摸
         if (HuUtil.isHuExtra(me.cards, gui, 0)){
             // TODO: 2022/2/16 delete this
-            //System.out.println("自摸 player"+me.id);
+            //if (me.id==3) System.out.println("自摸 player"+me.id);
             ActionResult result=new ActionResult(ResultCode.ZiMo,input);
             result.from=me.matrix;
             result.to=me;
@@ -84,39 +84,40 @@ public class QingYiSheMoPaiAction extends BasicMoPaiAction {
         // TODO: 2022/2/16 outAI返回一个出牌列表,以便保留做清一色的可能
         int out = AIUtil.outAI(me.cards, gui);
         me.cards.remove((Integer) out);
-        //根据可见张数下叫
-//        double value=AIUtil.calc(me.cards,new ArrayList<>());
-//        if (value>10){
-//            Map<Integer,Integer> zhangShuMap=new HashMap<>();
-//            me.cards.add((Integer) out);
-//            HashSet<Integer> cardsSet=new HashSet<>(me.cards);
-//            for(Integer card : cardsSet){
-//                List<Integer> temp=new ArrayList<>(me.cards);
-//                temp.remove(card);
-//                List<Integer> ting = HuUtil.isTingExtra(temp, gui);
-//                //List<Integer> ting = HuUtil.isTingCard(temp,0);
-//                int zhangShu=ting.size()*4;
-//                if (!ting.isEmpty()){
-//                    for (Integer i : ting){
-//                        zhangShu=zhangShu-Collections.frequency(me.cards,i);
-//                        zhangShu=zhangShu-Collections.frequency(me.cardsOnTable,i);
-//                        zhangShu=zhangShu-Collections.frequency(me.matrix.cardsOnTable,i);
-//                    }
-//                }
-//                zhangShuMap.put(card,zhangShu);
-//            }
-//            Integer bestKey=zhangShuMap.keySet().stream().findFirst().get();
-//            for (Integer key:zhangShuMap.keySet()){
-//                if(zhangShuMap.get(key)>zhangShuMap.get(bestKey)) bestKey=key;
-//            }
-//            if (zhangShuMap.get(bestKey) !=0) {
-//                me.cards.remove(bestKey);
-//                out = bestKey;
-//            }
-//            else {
-//                me.cards.remove((Integer) out);
-//            }
-//        }
+        //region 根据可见张数下叫
+        double value=AIUtil.calc(me.cards,new ArrayList<>());
+        if (value>10){
+            Map<Integer,Integer> zhangShuMap=new HashMap<>();
+            me.cards.add((Integer) out);
+            HashSet<Integer> cardsSet=new HashSet<>(me.cards);
+            for(Integer card : cardsSet){
+                List<Integer> temp=new ArrayList<>(me.cards);
+                temp.remove(card);
+                List<Integer> ting = HuUtil.isTingExtra(temp, gui);
+                //List<Integer> ting = HuUtil.isTingCard(temp,0);
+                int zhangShu=ting.size()*4;
+                if (!ting.isEmpty()){
+                    for (Integer i : ting){
+                        zhangShu=zhangShu-Collections.frequency(me.cards,i);
+                        zhangShu=zhangShu-Collections.frequency(me.cardsOnTable,i);
+                        zhangShu=zhangShu-Collections.frequency(me.matrix.cardsOnTable,i);
+                    }
+                }
+                zhangShuMap.put(card,zhangShu);
+            }
+            Integer bestKey=zhangShuMap.keySet().stream().findFirst().get();
+            for (Integer key:zhangShuMap.keySet()){
+                if(zhangShuMap.get(key)>zhangShuMap.get(bestKey)) bestKey=key;
+            }
+            if (zhangShuMap.get(bestKey) !=0) {
+                me.cards.remove(bestKey);
+                out = bestKey;
+            }
+            else {
+                me.cards.remove((Integer) out);
+            }
+        }
+        //endregion
         ActionResult result = new ActionResult(ResultCode.ChuPai, out);
         result.from = me;
         result.in=input;

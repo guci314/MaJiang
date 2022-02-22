@@ -31,4 +31,17 @@ public class GameUtil {
         if (x==MaJiangDef.TYPE_TIAO) return HuaShe.TIAO;
         return null;
     }
+
+    public static HuaShe stringToHuaShe(String s){
+        switch (s){
+            case "TONG":
+                return HuaShe.TONG;
+            case "TIAO":
+                return HuaShe.TIAO;
+            case "WAN":
+                return HuaShe.WAN;
+            default:
+                return null;
+        }
+    }
 }

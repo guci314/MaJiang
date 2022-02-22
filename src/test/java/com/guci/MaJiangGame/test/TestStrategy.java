@@ -3,20 +3,33 @@ package com.guci.MaJiangGame.test;
 import com.github.esrrhs.majiang_algorithm.AIUtil;
 import com.github.esrrhs.majiang_algorithm.HuUtil;
 import com.guci.MaJiangGame.*;
+import com.guci.MaJiangGame.QingYiSe.QingYiSeDianPaoHuAction;
 import com.guci.MaJiangGame.QingYiSe.QingYiSePengGangAction;
 import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
 import com.guci.MaJiangGame.RenPao.RenPaoAction_ByActivePlayerNumber;
 import com.guci.MaJiangGame.RenPao.RenPaoAction_ByCardsNumber;
 import com.guci.MaJiangGame.RenPao.RenPaoAction_ByKeGangPai;
 import com.guci.MaJiangGame.RenPao.RenPaoAction_ByXiaJiaoZhangShu;
+import com.mongodb.client.*;
+import org.bson.Document;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.HashSet;
+
 public class TestStrategy {
+    static MongoCollection<Document> dataForBasicAction;
+    static MongoCollection<Document> xiaJiaoZhangSuCollection;
+
     @BeforeClass
     public static void setup() {
         HuUtil.load();
         AIUtil.load();
+        String uri = "mongodb://localhost:27017";
+        MongoClient mongoClient = MongoClients.create(uri);
+        MongoDatabase database = mongoClient.getDatabase("majiang");
+        dataForBasicAction=database.getCollection("dataForBasicAction");
+        xiaJiaoZhangSuCollection=database.getCollection("xiaJiaoZhangSu");
     }
 
     /**
@@ -122,26 +135,73 @@ public class TestStrategy {
      * 测试忍炮  根据胡牌张数
      * 6是最优阈值
      */
-    //@Test
+    @Test
     public void testRenPao2() {
         Matrix matrix = new Matrix();
         matrix.init();
+        matrix.createQingYiSeAction();
         Player p = matrix.players.get(2);
         p.dianPaoHuActionList.clear();
         RenPaoAction_ByXiaJiaoZhangShu rp = new RenPaoAction_ByXiaJiaoZhangShu();
         p.dianPaoHuActionList.add(rp);
-        for (int n = 1; n < 2; n++) {
+        for (int n = 1; n < 10; n++) {
             //rp.threshold=n;
             System.out.println("胡牌张数阈值=" + n);
             for (Player p1 : matrix.players) {
                 p1.jinE = 0;
             }
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 10000; i++) {
                 matrix.reset();
                 matrix.play();
             }
             matrix.printJingE();
-            matrix.print();
+            //matrix.print();
+        }
+    }
+
+    @Test
+    public void testRenPao_xjzs(){
+        for (int x=1;x<20;x++) {
+            int xjzs = x;
+            System.out.println("张数阈值:"+x);
+            HashSet<String> gameIds = new HashSet<>();
+            Document query = new Document("activePlayerNum", 4);
+            query.put("player3_xjzs", xjzs);
+            FindIterable<Document> findIterable = xiaJiaoZhangSuCollection.find(query).limit(10000);
+            findIterable.forEach(document -> {
+                gameIds.add(document.getString("gameId"));
+            });
+
+            System.out.println(gameIds.size());
+
+            Matrix matrix = new Matrix();
+            matrix.collection = dataForBasicAction;
+            matrix.init();
+            matrix.createQingYiSeAction();
+            matrix.reset();
+            for (String id : gameIds) {
+                matrix.loadFromDatabase(id);
+                matrix.play();
+            }
+            matrix.printJingE();
+
+            System.out.println("---------------------------");
+
+            for (Player p1 : matrix.players) {
+                p1.jinE = 0;
+            }
+            Player p = matrix.players.get(2);
+            p.dianPaoHuActionList.clear();
+            RenPaoAction_ByXiaJiaoZhangShu rp = new RenPaoAction_ByXiaJiaoZhangShu();
+            rp.xjzs_threshold = xjzs;
+            p.dianPaoHuActionList.add(rp);
+
+            for (String id : gameIds) {
+                matrix.loadFromDatabase(id);
+                matrix.play();
+            }
+            matrix.printJingE();
+            //matrix.print();
         }
     }
 
@@ -176,14 +236,14 @@ public class TestStrategy {
 
     /**
      * 打一万盘
-     * 2号玩家基准值是 -700
+     * 2号玩家基准值是 -800
      */
     @Test
     public void testRenPaoJiZunZi() {
         Matrix matrix = new Matrix();
         matrix.init();
         matrix.createQingYiSeAction();
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 100000; i++) {
             matrix.reset();
             matrix.play();
         }
@@ -194,7 +254,7 @@ public class TestStrategy {
      * 测试清一色短牌阈值
      * 结论最佳阈值为3
      */
-    //@Test
+    @Test
     public void testQingYiSeStrategy() {
         //int n=2;
         Matrix matrix = new Matrix();
@@ -208,9 +268,9 @@ public class TestStrategy {
         p.pengGangActionList.clear();
         p.pengGangActionList.add(new QingYiSePengGangAction());
         p.dianPaoHuActionList.clear();
-        //p.dianPaoHuActionList.add(new QingYiSeDianPaoHuAction());
+        p.dianPaoHuActionList.add(new QingYiSeDianPaoHuAction());
         //p.dianPaoHuActionList.add(new RenPaoAction_ByActivePlayerNumber());
-        p.dianPaoHuActionList.add(new RenPaoAction_ByCardsNumber());
+        //p.dianPaoHuActionList.add(new RenPaoAction_ByCardsNumber());
 
 //        matrix.players.get(0).dianPaoHuActionList.clear();
 //        matrix.players.get(0).dianPaoHuActionList.add(new RenPaoAction_ByCardsNumber());
@@ -221,14 +281,15 @@ public class TestStrategy {
 //        matrix.players.get(3).dianPaoHuActionList.clear();
 //        matrix.players.get(3).dianPaoHuActionList.add(new RenPaoAction_ByCardsNumber());
 
-        for (int n = 2; n < 7; n++) {
+        for (int n = 2; n < 4; n++) {
             p.threshold_duanzhang = n;
             System.out.println("阈值:" + n);
             for (Player p1 : matrix.players) {
                 p1.jinE = 0;
             }
-            for (int i = 0; i < 100000; i++) {
+            for (int i = 0; i < 1000000; i++) {
                 matrix.reset();
+                // TODO: 2022/2/22 检查定缺状况
                 matrix.play();
             }
             matrix.printJingE();

@@ -1,30 +1,35 @@
 package com.guci.MaJiangGame.test;
 
 import com.alibaba.fastjson.JSONObject;
+import com.guci.MaJiangGame.GameUtil;
 import com.guci.MaJiangGame.HuaShe;
 import com.mongodb.MongoException;
 import com.mongodb.client.*;
 import com.mongodb.client.result.InsertOneResult;
-import org.bson.BsonDocument;
-import org.bson.BsonInt64;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
+import static com.mongodb.client.model.Filters.eq;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class TestJava {
     static MongoCollection<Document> collection;
+    static MongoCollection<Document> dataForBasicAction;
+    static MongoDatabase database;
+
     @BeforeClass
-    public static void setup(){
+    public static void setup() {
         String uri = "mongodb://localhost:27017";
         MongoClient mongoClient = MongoClients.create(uri);
-        MongoDatabase database = mongoClient.getDatabase("majiang");
+        database = mongoClient.getDatabase("majiang");
         collection = database.getCollection("test");
+        dataForBasicAction = database.getCollection("dataForBasicAction");
     }
+
     @Test
     public void testSwitch() {
         HuaShe x = HuaShe.TIAO;
@@ -82,29 +87,66 @@ public class TestJava {
     @Test
     public void testPlayer() {
         FindIterable<Document> findIterable = collection.find(new Document());
-        findIterable.forEach(document -> {
-            String to=document.get("action",Document.class).get("to").toString();
+
+        Consumer<Document> processDocument = document -> {
+            String to = document.get("action", Document.class).get("to").toString();
             if (to.equals("1")) {
                 System.out.println(document.get("action"));
                 System.out.println(document.get("player1"));
             }
-        });
+        };
+        findIterable.forEach(processDocument::accept);
     }
 
     @Test
-    public void viewData(){
-        FindIterable<Document> findIterable = collection.find(new Document());
-        findIterable.forEach(document -> {
-            System.out.println(document);
-            //System.out.println(document.get("action",Document.class).get("code"));
-//            if (document.get("action",Document.class).get("code").equals("Init")){
-//                System.out.println(document);
-//            }
-        });
+    public void gen_xiaJiaoZhangSu_Collection() {
+        AtomicInteger counter= new AtomicInteger(0);
+        AtomicInteger total= new AtomicInteger(0);
+        MongoCollection<Document> xiaJiaoZhangSu_Collection = database.getCollection("xiaJiaoZhangSu");
+
+        for (int j=3;j<5;j++) {
+            for (int i = 1; i < 30; i++) {
+                Document query = new Document();
+                query.put("activePlayerNumber", j);
+                query.put("player3.xiaJiaoZhangSu", i);
+
+                HashSet<String> gameIds = new HashSet<>();
+
+                FindIterable<Document> findIterable = dataForBasicAction.find(query)
+                        .projection(new Document("gameId", 1));
+                int finalI = i;
+                int finalJ = j;
+                findIterable.forEach(document -> {
+                    String gid = document.getString("gameId");
+                    if (!gameIds.contains(gid)) {
+                        gameIds.add(gid);
+                        Document d = new Document("gameId", gid);
+                        d.put("activePlayerNum", finalJ);
+                        d.put("player3_xjzs", finalI);
+                        xiaJiaoZhangSu_Collection.insertOne(d);
+                        int c = counter.getAndIncrement();
+                        int t = total.getAndIncrement();
+                        if (c > 500) {
+                            System.out.println("total:" + t);
+                            counter.set(0);
+                        }
+                    }
+                });
+
+            }
+        }
+
+    }
+
+    @Test
+    public void test1(){
+        MongoCollection<Document> xiaJiaoZhangSu_Collection = database.getCollection("xiaJiaoZhangSu");
+        xiaJiaoZhangSu_Collection.deleteMany(new Document("player3_xjzs",0));
     }
 
     @Test
     public void test() {
-
+        long l=dataForBasicAction.estimatedDocumentCount();
+        System.out.println(l);
     }
 }

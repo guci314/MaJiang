@@ -8,10 +8,7 @@ import com.guci.MaJiangGame.QingYiSe.QingYiSePengGangAction;
 import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import org.bson.Document;
 import org.bson.json.JsonObject;
 import org.bson.types.ObjectId;
@@ -25,9 +22,9 @@ public class Matrix {
     public JiZhang jiZhang;
     List<Document> statusHistory=new ArrayList<>();
     public MongoCollection<Document> collection;
-
-    UUID gameId;
-
+    public boolean savetodb=false;
+    public String gameId;
+    int actionIndex=1;
     /**
      * 未显的牌
      */
@@ -41,11 +38,46 @@ public class Matrix {
      */
     public Player currentPlayer;
 
+    public boolean loadFromDatabase(String gameId){
+        reset();
+        this.gameId=gameId;
+        Document query=new Document();
+        query.put("gameId",gameId);
+        query.put("index",1);
+        //long l=collection.countDocuments(query);
+        //System.out.println("number of document :"+l);
+        //if (l==0) return false;
+        FindIterable<Document> findIterable=collection.find(query);
+        findIterable.forEach(document -> {
+            cards=MaJiangDef.stringToCards(document.getString("matrix_cards"));
+            String s=document.get("player1",Document.class).getString("cards");
+            players.get(0).cards=MaJiangDef.stringToCards(s);
+            s=document.get("player1",Document.class).getString("DingQue");
+            players.get(0).dingQue=GameUtil.stringToHuaShe(s);
+
+            s=document.get("player2",Document.class).getString("cards");
+            players.get(1).cards=MaJiangDef.stringToCards(s);
+            s=document.get("player2",Document.class).getString("DingQue");
+            players.get(1).dingQue=GameUtil.stringToHuaShe(s);
+
+            s=document.get("player3",Document.class).getString("cards");
+            players.get(2).cards=MaJiangDef.stringToCards(s);
+            s=document.get("player3",Document.class).getString("DingQue");
+            players.get(2).dingQue=GameUtil.stringToHuaShe(s);
+
+            s=document.get("player4",Document.class).getString("cards");
+            players.get(3).cards=MaJiangDef.stringToCards(s);
+            s=document.get("player4",Document.class).getString("DingQue");
+            players.get(3).dingQue=GameUtil.stringToHuaShe(s);
+        });
+        return true;
+    }
+
     /**
      * 初始化
      */
     public void init() {
-        gameId=UUID.randomUUID();
+        gameId=UUID.randomUUID().toString();
         jiZhang = new JiZhang();
         jiZhang.matrix = this;
         Player p1 = new Player();
@@ -98,7 +130,8 @@ public class Matrix {
      * 重置
      */
     public void reset() {
-        gameId=UUID.randomUUID();
+        gameId=UUID.randomUUID().toString();
+        actionIndex=1;
         statusHistory.clear();
         cardsOnTable = new ArrayList<>();
         cards = new ArrayList<>();
@@ -141,9 +174,12 @@ public class Matrix {
     }
 
     public void saveStatus(ActionResult action){
+        if (!savetodb) return;
         if (action.code==ResultCode.NoAction) return;
         Document document=new Document();//.append("_id", );
         document.put("gameId",gameId.toString());
+        document.put("index",actionIndex);
+        actionIndex++;
         document.put("matrix_cards",MaJiangDef.cardsToString(cards));
         document.put("matrix_cardsOnTable",MaJiangDef.cardsToString(cardsOnTable));
         for (Player p:players){
@@ -306,7 +342,7 @@ public class Matrix {
         while (!gameover()) {
             step();
         }
-        saveToDatabase();
+        if (savetodb) saveToDatabase();
     }
 
     public void saveToDatabase(){

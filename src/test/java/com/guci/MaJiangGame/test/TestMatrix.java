@@ -5,11 +5,7 @@ import com.github.esrrhs.majiang_algorithm.HuUtil;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 import com.guci.MaJiangGame.*;
 import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
-import com.guci.MaJiangGame.RenPao.RenPaoAction_ByActivePlayerNumber;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import org.bson.Document;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -18,10 +14,12 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class TestMatrix {
     static MongoCollection<Document> collection;
     static MongoCollection<Document>  dataForBasicAction;
+    static MongoCollection<Document> xiaJiaoZhangSuCollection;
     @BeforeClass
     public static void setup(){
         HuUtil.load();
@@ -31,6 +29,25 @@ public class TestMatrix {
         MongoDatabase database = mongoClient.getDatabase("majiang");
         collection = database.getCollection("test");
         dataForBasicAction=database.getCollection("dataForBasicAction");
+        xiaJiaoZhangSuCollection=database.getCollection("xiaJiaoZhangSu");
+    }
+
+    @Test
+    public void testLoadFromDatabase(){
+        Document query=new Document("player3_xjzs",1);
+        FindIterable<Document> findIterable=xiaJiaoZhangSuCollection.find(query).limit(1);
+        AtomicReference<String> gameId=new AtomicReference<>();
+        findIterable.forEach(document -> {
+            System.out.println(document);
+            gameId.set(document.getString("gameId"));
+        });
+        Matrix matrix=new Matrix();
+        matrix.init();
+        matrix.collection=dataForBasicAction;
+        boolean b=matrix.loadFromDatabase(gameId.get());
+        //if (!b) System.out.println("加载数据失败");
+        matrix.play();
+        matrix.print();
     }
 
     @Test
@@ -452,10 +469,7 @@ public class TestMatrix {
         Assert.assertEquals(Status.Hu,matrix.players.get(0).status);
     }
 
-    @Test
-    public void emptyDatabase(){
-        collection.deleteMany(new Document());
-    }
+
     @Test
     public void testPlay(){
         Matrix matrix=new Matrix();
@@ -486,20 +500,20 @@ public class TestMatrix {
     }
 
     @Test
-    public void testPerformance(){
-        dataForBasicAction.deleteMany(new Document());
+    public void genDatabase(){
         int total=0;
         Matrix matrix=new Matrix();
+        matrix.savetodb=true;
         matrix.init();
         matrix.collection=dataForBasicAction;
 
-        //matrix.createQingYiSeAction();
+        matrix.createQingYiSeAction();
 //        for (Player p: matrix.players){
 //            p.dianPaoHuActionList.clear();
 //            p.dianPaoHuActionList.add(new RenPaoAction_ByActivePlayerNumber());
 //        }
         int couter=0;
-        for(int i=0;i<10000000;i++){
+        for(int i=0;i<1000000;i++){
             couter++;
             if (couter>300){
                 System.out.println("局数:"+i);

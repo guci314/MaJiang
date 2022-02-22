@@ -43,6 +43,7 @@ public class Player {
         object.put("xiaJiaoZhangSu",xiaJiaoZhangSu());
         object.put("numberOfKanPai",numberOfKanPai());
         object.put("isQingYiShe",isQingYiShe());
+        object.put("zuoQingYiShe",keZuoQingYiShe());
         return object.toJSONString();
     }
 
