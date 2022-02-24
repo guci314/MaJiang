@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import com.guci.MaJiangGame.QingYiSe.QingYiSeDianPaoHuAction;
 import com.guci.MaJiangGame.QingYiSe.QingYiSePengGangAction;
 import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
-import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.*;
 import org.bson.Document;
@@ -14,17 +13,22 @@ import org.bson.json.JsonObject;
 import org.bson.types.ObjectId;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+
+import static com.mongodb.client.model.Filters.eq;
 
 public class Matrix {
-    public static Gson gson=new Gson();
+    public static List<Document> memoryDb=new ArrayList<>();
+    public static Gson gson = new Gson();
     public boolean showDetail = false;
     public List<Player> players = new ArrayList<>();
     public JiZhang jiZhang;
-    List<Document> statusHistory=new ArrayList<>();
+    List<Document> statusHistory = new ArrayList<>();
     public MongoCollection<Document> collection;
-    public boolean savetodb=false;
+    public boolean savetodb = false;
     public String gameId;
-    int actionIndex=1;
+    int actionIndex = 1;
+    //boolean stop=false;
     /**
      * 未显的牌
      */
@@ -38,46 +42,87 @@ public class Matrix {
      */
     public Player currentPlayer;
 
-    public boolean loadFromDatabase(String gameId){
-        reset();
-        this.gameId=gameId;
-        Document query=new Document();
-        query.put("gameId",gameId);
-        query.put("index",1);
-        //long l=collection.countDocuments(query);
-        //System.out.println("number of document :"+l);
-        //if (l==0) return false;
-        FindIterable<Document> findIterable=collection.find(query);
-        findIterable.forEach(document -> {
-            cards=MaJiangDef.stringToCards(document.getString("matrix_cards"));
-            String s=document.get("player1",Document.class).getString("cards");
-            players.get(0).cards=MaJiangDef.stringToCards(s);
-            s=document.get("player1",Document.class).getString("DingQue");
-            players.get(0).dingQue=GameUtil.stringToHuaShe(s);
+    /**
+     * 根据gameId,index从数据库加载
+     * @param gameId
+     * @param index
+     * @return
+     */
+    public boolean loadFromDatabase(String gameId, int index) {
+        this.gameId = gameId;
+        Document query = new Document();
+        query.put("gameId", gameId);
+        query.put("index", index);
+        Document document = collection.find(query).first();
+        assert document != null:"数据库中没找到文档";
+        loadFromDocument(document);
+//        cards = MaJiangDef.stringToCards(document.getString("matrix_cards"));
+//        String s = document.get("player1", Document.class).getString("cards");
+//        players.get(0).cards = MaJiangDef.stringToCards(s);
+//        s = document.get("player1", Document.class).getString("DingQue");
+//        players.get(0).dingQue = GameUtil.stringToHuaShe(s);
+//
+//        s = document.get("player2", Document.class).getString("cards");
+//        players.get(1).cards = MaJiangDef.stringToCards(s);
+//        s = document.get("player2", Document.class).getString("DingQue");
+//        players.get(1).dingQue = GameUtil.stringToHuaShe(s);
+//
+//        s = document.get("player3", Document.class).getString("cards");
+//        players.get(2).cards = MaJiangDef.stringToCards(s);
+//        s = document.get("player3", Document.class).getString("DingQue");
+//        players.get(2).dingQue = GameUtil.stringToHuaShe(s);
+//
+//        s = document.get("player4", Document.class).getString("cards");
+//        players.get(3).cards = MaJiangDef.stringToCards(s);
+//        s = document.get("player4", Document.class).getString("DingQue");
+//        players.get(3).dingQue = GameUtil.stringToHuaShe(s);
 
-            s=document.get("player2",Document.class).getString("cards");
-            players.get(1).cards=MaJiangDef.stringToCards(s);
-            s=document.get("player2",Document.class).getString("DingQue");
-            players.get(1).dingQue=GameUtil.stringToHuaShe(s);
-
-            s=document.get("player3",Document.class).getString("cards");
-            players.get(2).cards=MaJiangDef.stringToCards(s);
-            s=document.get("player3",Document.class).getString("DingQue");
-            players.get(2).dingQue=GameUtil.stringToHuaShe(s);
-
-            s=document.get("player4",Document.class).getString("cards");
-            players.get(3).cards=MaJiangDef.stringToCards(s);
-            s=document.get("player4",Document.class).getString("DingQue");
-            players.get(3).dingQue=GameUtil.stringToHuaShe(s);
-        });
         return true;
+    }
+
+    /**
+     * 根据document id从数据库加载
+     * @param docId
+     * @return
+     */
+    public boolean loadFromDatabase(String docId) {
+        //reset();
+        this.gameId = gameId;
+        Document document = collection
+                .find(eq("_id", new ObjectId(docId)))
+                .first();
+        loadFromDocument(document);
+        return true;
+    }
+
+    public void loadFromDocument(Document document) {
+        cards = MaJiangDef.stringToCards(document.getString("matrix_cards"));
+        cardsOnTable = MaJiangDef.stringToCards(document.getString("matrix_cardsOnTable"));
+
+        BiConsumer<Document, Integer> loadPlayers = (document1, index) -> {
+            int id = index + 1;
+            String s = document1.get("player" + id, Document.class).getString("cards");
+            players.get(index).cards = MaJiangDef.stringToCards(s);
+            s = document1.get("player" + id, Document.class).getString("cardsOnTable");
+            players.get(index).cardsOnTable = MaJiangDef.stringToCards(s);
+            s = document1.get("player" + id, Document.class).getString("DingQue");
+            players.get(index).dingQue = GameUtil.stringToHuaShe(s);
+            s = document1.get("player" + id, Document.class).getString("status");
+            players.get(index).status = GameUtil.stringToStatus(s);
+        };
+        for (int i = 0; i < players.size(); i++) {
+            loadPlayers.accept(document, i);
+        }
     }
 
     /**
      * 初始化
      */
     public void init() {
-        gameId=UUID.randomUUID().toString();
+        statusHistory = new ArrayList<>();
+        cardsOnTable = new ArrayList<>();
+        cards = new ArrayList<>();
+        gameId = UUID.randomUUID().toString();
         jiZhang = new JiZhang();
         jiZhang.matrix = this;
         Player p1 = new Player();
@@ -103,11 +148,14 @@ public class Matrix {
 
     }
 
-    private void addBasicAction(Player p) {
+    public void addBasicAction(Player p) {
+        p.moPaiActionList.clear();
         p.moPaiActionList.add(new DingQueMoPaiAction());
         p.moPaiActionList.add(new IsolatingMoPaiAction());
         p.moPaiActionList.add(new BasicMoPaiAction());
+        p.dianPaoHuActionList.clear();
         p.dianPaoHuActionList.add(new BasicDianPaoHuAction());
+        p.pengGangActionList.clear();
         p.pengGangActionList.add(new BasicPengGangAction());
         p.matrix = this;
         players.add(p);
@@ -127,11 +175,11 @@ public class Matrix {
     }
 
     /**
-     * 重置
+     * 重置 不重置金额
      */
     public void reset() {
-        gameId=UUID.randomUUID().toString();
-        actionIndex=1;
+        gameId = UUID.randomUUID().toString();
+        actionIndex = 1;
         statusHistory.clear();
         cardsOnTable = new ArrayList<>();
         cards = new ArrayList<>();
@@ -163,6 +211,10 @@ public class Matrix {
         }
     }
 
+    public void resetJinE() {
+        for (Player p : players) p.jinE = 0;
+    }
+
     /**
      * 游戏结束
      *
@@ -173,23 +225,63 @@ public class Matrix {
         return players.stream().filter(p -> p.status == Status.Playing).count() < 2;
     }
 
-    public void saveStatus(ActionResult action){
+    public void saveStatus(ActionResult action) {
         if (!savetodb) return;
-        if (action.code==ResultCode.NoAction) return;
-        Document document=new Document();//.append("_id", );
-        document.put("gameId",gameId.toString());
-        document.put("index",actionIndex);
+        if (action.code == ResultCode.NoAction) return;
+        Document document = new Document();//.append("_id", );
+        document.put("gameId", gameId.toString());
+        document.put("index", actionIndex);
         actionIndex++;
-        document.put("matrix_cards",MaJiangDef.cardsToString(cards));
-        document.put("matrix_cardsOnTable",MaJiangDef.cardsToString(cardsOnTable));
-        for (Player p:players){
-            JsonObject object=new JsonObject(p.toString());
-            document.put("player"+p.id,object);
+        document.put("matrix_cards", MaJiangDef.cardsToString(cards));
+        document.put("matrix_cardsOnTable", MaJiangDef.cardsToString(cardsOnTable));
+        for (Player p : players) {
+            JsonObject object = new JsonObject(p.toString());
+            document.put("player" + p.id, object);
         }
-        JsonObject jo=new JsonObject(action.toString());
-        document.put("action",jo);
-        document.put("activePlayerNumber",players.stream().filter(p->p.status== Status.Playing).count());
+        JsonObject jo = new JsonObject(action.toString());
+        document.put("action", jo);
+        document.put("activePlayerNumber", players.stream().filter(p -> p.status == Status.Playing).count());
         statusHistory.add(document);
+        //保存特殊牌型
+        //savePaiXing1(document);
+        saveQysPaiXing(document);
+    }
+
+    private void saveQysPaiXing(Document document){
+        Player p3=players.get(2);
+        HuaShe cangPai=p3.keZuoQingYiShe();
+        if (p3.hasQue() && (cangPai !=null)){
+            //计算短张长度
+            long duanZangSu=p3.cards.stream().filter(x->GameUtil.type(x) != cangPai).count();
+            if (duanZangSu<=4){
+                document.put("duanZangSu",duanZangSu);
+                document.put("matrix_cards_size",cards.size());
+                document.put("dingQueSu",players.stream().filter(x->x.dingQue==cangPai).count());
+                memoryDb.add(document);
+                //结束游戏
+                for (Player p:players) p.status=Status.Hu;
+            }
+        }
+    }
+
+    private void savePaiXing1(Document document) {
+        Player p3=players.get(2);
+        if (p3.cards.size()==4 && p3.xiaJiaoZhangSu()>0 && p3.status==Status.Playing){
+            HashSet<Integer> cards=new HashSet<>();
+            for(Integer i:p3.cards) cards.add(i);
+            if (cards.size()==2){
+                boolean result=true;
+                for (Integer c:cards){
+                    boolean b=Collections.frequency(p3.cards,c)==2;
+                    result=result && b;
+                }
+                if (result) {
+                    memoryDb.add(document);
+                    //结束游戏
+                    for (Player p:players) p.status=Status.Hu;
+                }
+            }
+        }
     }
 
     /**
@@ -254,7 +346,7 @@ public class Matrix {
                 if (r.code == ResultCode.NoAction) {
                     cardsOnTable.add(out.out);
                     break;
-                }else {
+                } else {
 
                 }
             }
@@ -338,15 +430,15 @@ public class Matrix {
      */
     public void play() {
         currentPlayer = players.get(0);
-        saveStatus(new ActionResult(ResultCode.Init,null));
+        saveStatus(new ActionResult(ResultCode.Init, null));
         while (!gameover()) {
             step();
         }
         if (savetodb) saveToDatabase();
     }
 
-    public void saveToDatabase(){
-        if (collection != null){
+    public void saveToDatabase() {
+        if (collection != null) {
             try {
                 collection.insertMany(statusHistory);
             } catch (MongoException me) {

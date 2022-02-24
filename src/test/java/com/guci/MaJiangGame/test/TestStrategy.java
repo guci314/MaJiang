@@ -11,25 +11,35 @@ import com.guci.MaJiangGame.RenPao.RenPaoAction_ByCardsNumber;
 import com.guci.MaJiangGame.RenPao.RenPaoAction_ByKeGangPai;
 import com.guci.MaJiangGame.RenPao.RenPaoAction_ByXiaJiaoZhangShu;
 import com.mongodb.client.*;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 import org.bson.Document;
+import org.bson.json.JsonObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 public class TestStrategy {
     static MongoCollection<Document> dataForBasicAction;
     static MongoCollection<Document> xiaJiaoZhangSuCollection;
-
+    static MongoDatabase database;
+    static MongoCollection<Document> qysCollection;
     @BeforeClass
     public static void setup() {
         HuUtil.load();
         AIUtil.load();
         String uri = "mongodb://localhost:27017";
         MongoClient mongoClient = MongoClients.create(uri);
-        MongoDatabase database = mongoClient.getDatabase("majiang");
+        database = mongoClient.getDatabase("majiang");
         dataForBasicAction=database.getCollection("dataForBasicAction");
         xiaJiaoZhangSuCollection=database.getCollection("xiaJiaoZhangSu");
+        qysCollection=database.getCollection("qingyise");
     }
 
     /**
@@ -160,14 +170,61 @@ public class TestStrategy {
     }
 
     @Test
+    public void testRenPao_xjzs1(){
+        for (int i=1;i<10;i++) {
+            int xjzs_threshold = i;
+            System.out.println("胡牌张数阈值:"+xjzs_threshold);
+            List<Document> docs = dataForBasicAction.aggregate(
+                    Arrays.asList(
+                            Aggregates.match(Filters.and(
+                                    Filters.eq("activePlayerNumber", 4),
+                                    Filters.eq("player3.xiaJiaoZhangSu", xjzs_threshold)))
+                            , Aggregates.limit(100000)
+                            , Aggregates.project(Projections.include(Arrays.asList("gameId", "index")))
+                            , Aggregates.group("$gameId", Accumulators.min("minIndex", "$index"))
+
+                    )
+            ).into(new ArrayList<>());
+            System.out.println("局面总数:" + docs.size());
+            Matrix matrix = new Matrix();
+            matrix.collection = dataForBasicAction;
+            matrix.init();
+            matrix.createQingYiSeAction();
+            for (Document document : docs) {
+                String gameId = document.getString("_id");
+                int index = document.getInteger("minIndex");
+                matrix.loadFromDatabase(gameId, index);
+                matrix.play();
+            }
+            matrix.printJingE();
+            matrix.resetJinE();
+            System.out.println("---------------------------------");
+
+            Player p = matrix.players.get(2);
+            p.dianPaoHuActionList.clear();
+            RenPaoAction_ByXiaJiaoZhangShu rp = new RenPaoAction_ByXiaJiaoZhangShu();
+            rp.xjzs_threshold = xjzs_threshold;
+            p.dianPaoHuActionList.add(rp);
+
+            for (Document document : docs) {
+                String gameId = document.getString("_id");
+                int index = document.getInteger("minIndex");
+                matrix.loadFromDatabase(gameId, index);
+                matrix.play();
+            }
+            matrix.printJingE();
+        }
+    }
+
+    @Test
     public void testRenPao_xjzs(){
-        for (int x=1;x<20;x++) {
+        for (int x=1;x<2;x++) {
             int xjzs = x;
             System.out.println("张数阈值:"+x);
             HashSet<String> gameIds = new HashSet<>();
             Document query = new Document("activePlayerNum", 4);
             query.put("player3_xjzs", xjzs);
-            FindIterable<Document> findIterable = xiaJiaoZhangSuCollection.find(query).limit(10000);
+            FindIterable<Document> findIterable = xiaJiaoZhangSuCollection.find(query).limit(10);
             findIterable.forEach(document -> {
                 gameIds.add(document.getString("gameId"));
             });
@@ -180,7 +237,7 @@ public class TestStrategy {
             matrix.createQingYiSeAction();
             matrix.reset();
             for (String id : gameIds) {
-                matrix.loadFromDatabase(id);
+                matrix.loadFromDatabase(id,1);
                 matrix.play();
             }
             matrix.printJingE();
@@ -197,7 +254,7 @@ public class TestStrategy {
             p.dianPaoHuActionList.add(rp);
 
             for (String id : gameIds) {
-                matrix.loadFromDatabase(id);
+                matrix.loadFromDatabase(id,1);
                 matrix.play();
             }
             matrix.printJingE();
@@ -210,28 +267,56 @@ public class TestStrategy {
      * 结论 手上有一坎可杠牌 且玩家数目为4时要忍炮
      * 胡牌张数最优值 4
      */
-    //@Test
-    public void testRenPao3() {
-        Matrix matrix = new Matrix();
-        matrix.init();
-        matrix.createQingYiSeAction();
-        Player p = matrix.players.get(2);
-        p.dianPaoHuActionList.clear();
-        RenPaoAction_ByKeGangPai rp = new RenPaoAction_ByKeGangPai();
-        p.dianPaoHuActionList.add(rp);
-        for (int n = 1; n < 10; n++) {
-            p.threshold_mopaicishu = n;
-            System.out.println("胡牌张数阈值:" + n);
-            for (Player p1 : matrix.players) {
-                p1.jinE = 0;
-            }
-            for (int i = 0; i < 100000; i++) {
-                matrix.reset();
-                matrix.play();
+    @Test
+    public void testRenPao_byKanPai() {
+        for(int i=1;i<10;i++) {
+            System.out.println("胡牌张数值:"+i);
+            List<Document> docs = dataForBasicAction.aggregate(
+                    Arrays.asList(
+                            Aggregates.match(Filters.and(
+                                    Filters.eq("activePlayerNumber", 4),
+                                    Filters.gte("player3.xiaJiaoZhangSu", i),
+                                    Filters.gt("player3.numberOfKanPai", 0),
+                                    Filters.eq("player3.status", "Playing")
+                            ))
+
+                            , Aggregates.limit(110000)
+                            , Aggregates.project(Projections.include(Arrays.asList("gameId", "index")))
+                            , Aggregates.group("$gameId", Accumulators.min("minIndex", "$index"))
+
+                    )
+            ).into(new ArrayList<>());
+            System.out.println("局面总数:" + docs.size());
+            Matrix matrix = new Matrix();
+            matrix.collection = dataForBasicAction;
+            matrix.init();
+            matrix.createQingYiSeAction();
+            for (Document document : docs) {
+                String gameId = document.getString("_id");
+                int index = document.getInteger("minIndex");
+                matrix.loadFromDatabase(gameId, index);
+                if (matrix.players.get(2).numberOfKanPai() > 0) matrix.play();
             }
             matrix.printJingE();
-        }
+            float jingE1=matrix.players.get(2).jinE;
+            matrix.resetJinE();
+            System.out.println("---------------------------------");
 
+            Player p = matrix.players.get(2);
+            p.dianPaoHuActionList.clear();
+            RenPaoAction_ByKeGangPai rp = new RenPaoAction_ByKeGangPai();
+            p.dianPaoHuActionList.add(rp);
+
+            for (Document document : docs) {
+                String gameId = document.getString("_id");
+                int index = document.getInteger("minIndex");
+                matrix.loadFromDatabase(gameId, index);
+                if (matrix.players.get(2).numberOfKanPai() > 0) matrix.play();
+            }
+            matrix.printJingE();
+            float jingE2=matrix.players.get(2).jinE;
+            System.out.println("提升率:"+(jingE2-jingE1)/jingE1);
+        }
     }
 
     /**
@@ -248,6 +333,44 @@ public class TestStrategy {
             matrix.play();
         }
         matrix.printJingE();
+    }
+
+    @Test
+    public void genPaiXing1() {
+        Matrix.memoryDb=new ArrayList<>();
+        Matrix matrix = new Matrix();
+        matrix.init();
+        matrix.savetodb=true;
+        matrix.createQingYiSeAction();
+        while (true){
+            matrix.reset();
+            matrix.play();
+            if (Matrix.memoryDb.size()>10000) break;
+        }
+        database.getCollection("paixing1").insertMany(Matrix.memoryDb);
+    }
+
+    @Test
+    public void genQys() {
+        Matrix.memoryDb=new ArrayList<>();
+        Matrix matrix = new Matrix();
+        matrix.init();
+        matrix.players.get(2).threshold_duanzhang=5;
+        matrix.players.get(2).threshold_mopaicishu=5;
+        matrix.savetodb=true;
+        matrix.createQingYiSeAction();
+        int counter=0;
+        while (true){
+            counter++;
+            if (counter>300){
+                counter=0;
+                System.out.println(Matrix.memoryDb.size());
+            }
+            matrix.reset();
+            matrix.play();
+            if (Matrix.memoryDb.size()>200000) break;
+        }
+        database.getCollection("qingyise").insertMany(Matrix.memoryDb);
     }
 
     /**
@@ -333,6 +456,30 @@ public class TestStrategy {
                 matrix.play();
             }
             matrix.printJingE();
+        }
+    }
+
+    @Test
+    public void testQingYiSeStrategy2() {
+        Matrix matrix = new Matrix();
+        matrix.init();
+        matrix.createQingYiSeAction();
+        matrix.reset();
+        for (int dingQueSu = 3; dingQueSu < 4; dingQueSu++) {
+            System.out.println("定缺数:"+dingQueSu);
+            List<Document> docs = qysCollection.find(new Document("dingQueSu", dingQueSu))
+                    .limit(50000).into(new ArrayList<>());
+
+            for(int dzs=4;dzs<9;dzs++) {
+                System.out.println("短张数:"+dzs);
+                matrix.players.get(2).threshold_duanzhang = dzs;
+                matrix.resetJinE();
+                for (Document doc : docs) {
+                    matrix.loadFromDocument(doc);
+                    matrix.play();
+                }
+                System.out.println(matrix.players.get(2).jinE);
+            }
         }
     }
 }

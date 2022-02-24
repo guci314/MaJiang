@@ -44,4 +44,12 @@ public class GameUtil {
                 return null;
         }
     }
+
+    public static Status stringToStatus(String s){
+        switch (s){
+            case "Hu":return Status.Hu;
+            case "Playing":return Status.Playing;
+            default:return null;
+        }
+    }
 }

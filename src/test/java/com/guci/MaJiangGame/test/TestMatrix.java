@@ -7,6 +7,7 @@ import com.guci.MaJiangGame.*;
 import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
 import com.mongodb.client.*;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -15,6 +16,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.mongodb.client.model.Filters.eq;
 
 public class TestMatrix {
     static MongoCollection<Document> collection;
@@ -32,6 +35,20 @@ public class TestMatrix {
         xiaJiaoZhangSuCollection=database.getCollection("xiaJiaoZhangSu");
     }
 
+    @Test public void test(){
+        Document query=new Document("_id",new ObjectId("6214a575ac4d7b13e021adb2"));
+//        List<Document> docs=new ArrayList<>();
+//        docs.add(new Document("ddd","dff"));
+//        dataForBasicAction.find(query).into(docs);
+//        for(Document doc:docs){
+//            System.out.println(doc);
+//        }
+        Document doc= dataForBasicAction
+                .find(eq("_id",new ObjectId("6214a575ac4d7b13e021adb2")))
+                .first();
+        System.out.println(doc);
+    }
+
     @Test
     public void testLoadFromDatabase(){
         Document query=new Document("player3_xjzs",1);
@@ -44,8 +61,21 @@ public class TestMatrix {
         Matrix matrix=new Matrix();
         matrix.init();
         matrix.collection=dataForBasicAction;
-        boolean b=matrix.loadFromDatabase(gameId.get());
+        boolean b=matrix.loadFromDatabase(gameId.get(),1);
         //if (!b) System.out.println("加载数据失败");
+        matrix.play();
+        matrix.print();
+    }
+
+    @Test
+    public void testLoadStatus(){
+        String docId="6214a575ac4d7b13e021adb2";
+        Matrix matrix=new Matrix();
+        matrix.init();
+        matrix.collection=dataForBasicAction;
+        matrix.loadFromDatabase(docId);
+        matrix.print();
+        System.out.println("------------------------------");
         matrix.play();
         matrix.print();
     }

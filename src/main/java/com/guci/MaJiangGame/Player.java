@@ -55,9 +55,14 @@ public class Player {
         int number=0;
         HashSet<Integer> cardsSet=new HashSet<>(cards);
         for (Integer c:cardsSet){
-            long l=cards.stream().filter(x->x==c).count();
+            long l=Collections.frequency(cards,c);
             if (l==3) {
-                if (matrix.cardsOnTable.stream().filter(x->x==c).count()==0) {
+                int x=0;
+                x=x+Collections.frequency(matrix.cardsOnTable,c);
+                for (Player p:matrix.players){
+                    x=x+Collections.frequency(p.cardsOnTable,c);
+                }
+                if (x==0) {
                     number++;
                 }
             }
