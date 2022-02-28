@@ -5,10 +5,8 @@ import com.github.esrrhs.majiang_algorithm.HuUtil;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor
 public class Player {
@@ -27,7 +25,7 @@ public class Player {
     /**
      * 清一色短张阈值
      */
-    public int threshold_duanzhang =3;
+    public int threshold_duanzhang =2;
 
     public int threshold_mopaicishu=4;
 
@@ -45,6 +43,11 @@ public class Player {
         object.put("isQingYiShe",isQingYiShe());
         object.put("zuoQingYiShe",keZuoQingYiShe());
         return object.toJSONString();
+    }
+
+    public List<Integer> huanSanZhang(){
+        Map<HuaShe,Long> typeCount = cards.stream().collect(Collectors.groupingBy(x->GameUtil.type(x),Collectors.counting()));
+        return null;
     }
 
     /**
@@ -165,6 +168,29 @@ public class Player {
         if(all.stream().allMatch(x->x>= MaJiangDef.WAN1 && x<=MaJiangDef.WAN9)) return true;
         if(all.stream().allMatch(x->x>= MaJiangDef.TONG1 && x<=MaJiangDef.TONG9)) return true;
         return false;
+    }
+
+    public List<Integer> getDuanZhang(){
+        List<Integer> all=new ArrayList<>();
+        all.addAll(cards);
+        all.addAll(cardsOnTable);
+        Map<HuaShe,Long> huaSheCount= all.stream().collect(Collectors.groupingBy(x->GameUtil.type(x),Collectors.counting()));
+        //System.out.println(huaSheCount);
+        //排序
+        Set<Map.Entry<HuaShe,Long>> set = huaSheCount.entrySet();
+        List<Map.Entry<HuaShe,Long>> list = new ArrayList<>(set);
+        Collections.sort( list, new Comparator<Map.Entry<HuaShe,Long>>()
+        {
+            public int compare( Map.Entry<HuaShe,Long> o1, Map.Entry<HuaShe,Long> o2 )
+            {
+                return (o1.getValue()).compareTo( o2.getValue() );//Ascending order
+                //return (o2.getValue()).compareTo( o1.getValue() );//Descending order
+            }
+        } );
+
+        HuaShe duanZhangHuaShe=list.get(0).getKey();
+        //System.out.println(duanZhangHuaShe);
+        return cards.stream().filter(x->GameUtil.type(x)==duanZhangHuaShe).collect(Collectors.toList());
     }
 
     /**

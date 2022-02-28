@@ -715,4 +715,26 @@ public class TestMatrix {
         int fan=jiZhang.jiFan(p,MaJiangDef.stringToCard("3条"));
         Assert.assertEquals(3,fan);
     }
+
+    // TODO: 2022/2/28 换三张
+    @Test
+    public void testHuanSanZhang(){
+        Player p=new Player();
+        p.cards=MaJiangDef.stringToCards("2万,3万,4万,6万,3筒,3筒,6筒,7筒,7筒,8筒,8筒,4条,6条");
+        List<Integer> sanZhang=p.huanSanZhang();
+        System.out.println(MaJiangDef.cardsToString(sanZhang));
+    }
+
+    @Test
+    public void testGetDuanZhang(){
+        Matrix matrix=new Matrix();
+        matrix.init();
+        matrix.createQingYiSeAction();
+        matrix.reset();
+        Player player3=matrix.players.get(2);
+        player3.cards= MaJiangDef.stringToCards("5筒,5筒,8筒,3条,1万,1万,2万,3万,3万,5万,7万,8万,8万,9万");
+        player3.dingQue=HuaShe.TIAO;
+        List<Integer> duanZhang= player3.getDuanZhang();
+        System.out.println(MaJiangDef.cardsToString(duanZhang).contains("3条"));
+    }
 }

@@ -69,12 +69,10 @@ public class TestMaJiang {
     }
     @Test
     public void hu(){
-        String init = "1万,2万,3万";
+        String init = "1万,1万,2万,2万,3万,3万,4万,4万,5万,5万,6筒,6筒,7筒,7筒";
 
         //String gui = "东";
         List<Integer> cards = MaJiangDef.stringToCards(init);
-        cards.add(MaJiangDef.FENG_DONG);
-        cards.add(MaJiangDef.FENG_DONG);
         List<Integer> gui=new ArrayList<>();
         System.out.println(HuUtil.isHuExtra(cards, gui,0)); //MaJiangDef.stringToCard(gui)
     }

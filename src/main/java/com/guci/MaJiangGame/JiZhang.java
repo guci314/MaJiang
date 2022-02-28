@@ -3,6 +3,7 @@ package com.guci.MaJiangGame;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 记账
@@ -91,18 +92,28 @@ public class JiZhang {
         all.addAll(p.cards);
         all.addAll(p.cardsOnTable);
         //all.addAll(p.anGangCards);
+        //计算有几个根
         Set<Integer> allSet = new HashSet<>();
         allSet.addAll(all);
         int fan=0;
         for(Integer i : allSet){
             if (Collections.frequency(all,i)==4) fan++;
         }
+        //清一色
         boolean isQingYiShe=false;
         if(all.stream().allMatch(x->x>= MaJiangDef.TIAO1 && x<=MaJiangDef.TIAO9)) isQingYiShe=true;
         if(all.stream().allMatch(x->x>= MaJiangDef.WAN1 && x<=MaJiangDef.WAN9)) isQingYiShe=true;
         if(all.stream().allMatch(x->x>= MaJiangDef.TONG1 && x<=MaJiangDef.TONG9)) isQingYiShe=true;
         if (isQingYiShe) fan=fan+2;
+        //大对子
+        if (GameUtil.isDaduizi(all)) fan++;
+        //暗七对
+        if (GameUtil.isQiDui(all)) fan=fan+2;
+        //门清
+        if (p.cardsOnTable.size()==0) fan++;
+
         if (fan >5) fan=5;
         return fan;
     }
+
 }

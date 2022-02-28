@@ -1,5 +1,7 @@
 package com.github.esrrhs.majiang_algorithm;
 
+import com.guci.MaJiangGame.GameUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +29,7 @@ public class HuUtil
 
 	public static boolean isHuExtra(List<Integer> input, List<Integer> guiCard, int extra)
 	{
+		if (GameUtil.isQiDui(input)) return true;
 		List<Integer> cards = new ArrayList<>();
 		for (int i = 0; i < MaJiangDef.MAX_NUM; i++)
 		{

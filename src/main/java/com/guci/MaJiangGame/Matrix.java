@@ -243,8 +243,20 @@ public class Matrix {
         document.put("activePlayerNumber", players.stream().filter(p -> p.status == Status.Playing).count());
         statusHistory.add(document);
         //保存特殊牌型
-        //savePaiXing1(document);
-        saveQysPaiXing(document);
+        savePaiXing1(document);
+        //saveQysPaiXing(document);
+        //savePlayer3XiaJiao(document);
+    }
+
+    private void savePlayer3XiaJiao(Document document){
+        Player p3=players.get(2);
+        if (p3.xiaJiaoZhangSu()>0 && p3.status==Status.Playing){
+        //if (p3.xiaJiaoZhangSu()==10 && p3.status==Status.Playing){
+            document.put("matrix_cards_size",cards.size());
+            memoryDb.add(document);
+            //结束游戏
+            for (Player p:players) p.status=Status.Hu;
+        }
     }
 
     private void saveQysPaiXing(Document document){
