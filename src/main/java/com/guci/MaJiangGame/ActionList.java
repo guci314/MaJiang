@@ -2,6 +2,7 @@ package com.guci.MaJiangGame;
 
 import java.util.ArrayList;
 
+// TODO: 2022/3/3 重构  添加NoDecision
 public class ActionList<M extends Action> extends ArrayList implements Action {
 
     @Override

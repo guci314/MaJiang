@@ -14,7 +14,6 @@ import com.mongodb.client.model.*;
 import lombok.var;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonObject;
 import org.bson.types.ObjectId;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -24,6 +23,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
 
 public class TestStrategy {
     static MongoCollection<Document> dataForBasicAction;
@@ -31,6 +33,9 @@ public class TestStrategy {
     static MongoDatabase database;
     static MongoCollection<Document> qysCollection;
     static MongoCollection<Document> paiXing1Collection;
+    static MongoCollection<Document> kuanChuangCollection;
+    static MongoCollection<Document> player3XiajaoCollection;
+
     @BeforeClass
     public static void setup() {
         HuUtil.load();
@@ -38,10 +43,12 @@ public class TestStrategy {
         String uri = "mongodb://localhost:27017";
         MongoClient mongoClient = MongoClients.create(uri);
         database = mongoClient.getDatabase("majiang");
-        dataForBasicAction=database.getCollection("dataForBasicAction");
-        xiaJiaoZhangSuCollection=database.getCollection("xiaJiaoZhangSu");
-        qysCollection=database.getCollection("qingyise");
-        paiXing1Collection=database.getCollection("paixing1");
+        dataForBasicAction = database.getCollection("dataForBasicAction");
+        xiaJiaoZhangSuCollection = database.getCollection("xiaJiaoZhangSu");
+        qysCollection = database.getCollection("qingyise");
+        paiXing1Collection = database.getCollection("paixing1");
+        kuanChuangCollection = database.getCollection("kuanChuang");
+        player3XiajaoCollection = database.getCollection("player3XiaJiao");
     }
 
     /**
@@ -147,7 +154,9 @@ public class TestStrategy {
 
     /**
      * 测试忍炮  根据胡牌张数
-     * 6是最优阈值
+     * 5是最优阈值
+     *
+     * @see #genRenPaoYuZiData()
      */
     @Test
     public void testRenPao2() {
@@ -159,12 +168,10 @@ public class TestStrategy {
         RenPaoAction_ByXiaJiaoZhangShu rp = new RenPaoAction_ByXiaJiaoZhangShu();
         p.dianPaoHuActionList.add(rp);
         for (int n = 1; n < 10; n++) {
-            //rp.threshold=n;
+            rp.xjzs_threshold = n;
             System.out.println("胡牌张数阈值=" + n);
-            for (Player p1 : matrix.players) {
-                p1.jinE = 0;
-            }
-            for (int i = 0; i < 10000; i++) {
+            matrix.resetJinE();
+            for (int i = 0; i < 100000; i++) {
                 matrix.reset();
                 matrix.play();
             }
@@ -173,9 +180,35 @@ public class TestStrategy {
         }
     }
 
+    @Test
+    public void testRenPaoByQys() {
+        Document query = new Document("player3.isQingYiShe", false);
+        List<Document> docs = player3XiajaoCollection.find(query).limit(10000).into(new ArrayList<>());
+        System.out.println("documents size:" + docs.size());
+        Matrix matrix = new Matrix();
+        matrix.init();
+        matrix.createQingYiSeAction();
+        Player p = matrix.players.get(2);
+        p.dianPaoHuActionList.clear();
+        RenPaoAction_ByXiaJiaoZhangShu rp = new RenPaoAction_ByXiaJiaoZhangShu();
+        p.dianPaoHuActionList.add(rp);
+        matrix.reset();
+
+        for (int n = 2; n < 10; n++) {
+            rp.xjzs_threshold = n;
+            System.out.println("胡牌张数阈值=" + n);
+            matrix.resetJinE();
+            for (Document doc : docs) {
+                matrix.loadFromDocument(doc);
+                matrix.play();
+            }
+            matrix.printJingE();
+            //matrix.print();
+        }
+    }
 
     @Test
-    public void testRenPao_xjzs_remainCardsNum(){
+    public void testRenPao_xjzs_remainCardsNum() {
         int xjzs_threshold = 1;
         //System.out.println("胡牌张数阈值:"+xjzs_threshold);
         List<Document> docs = dataForBasicAction.aggregate(
@@ -198,10 +231,10 @@ public class TestStrategy {
      * 根据下叫张数忍炮
      */
     @Test
-    public void testRenPao_xjzs1(){
-        for (int i=1;i<10;i++) {
+    public void testRenPao_xjzs1() {
+        for (int i = 1; i < 10; i++) {
             int xjzs_threshold = i;
-            System.out.println("胡牌张数阈值:"+xjzs_threshold);
+            System.out.println("胡牌张数阈值:" + xjzs_threshold);
             List<Document> docs = dataForBasicAction.aggregate(
                     Arrays.asList(
                             Aggregates.match(Filters.and(
@@ -245,10 +278,10 @@ public class TestStrategy {
     }
 
     @Test
-    public void testRenPao_xjzs(){
-        for (int x=1;x<2;x++) {
+    public void testRenPao_xjzs() {
+        for (int x = 1; x < 2; x++) {
             int xjzs = x;
-            System.out.println("张数阈值:"+x);
+            System.out.println("张数阈值:" + x);
             HashSet<String> gameIds = new HashSet<>();
             Document query = new Document("activePlayerNum", 4);
             query.put("player3_xjzs", xjzs);
@@ -265,7 +298,7 @@ public class TestStrategy {
             matrix.createQingYiSeAction();
             matrix.reset();
             for (String id : gameIds) {
-                matrix.loadFromDatabase(id,1);
+                matrix.loadFromDatabase(id, 1);
                 matrix.play();
             }
             matrix.printJingE();
@@ -282,7 +315,7 @@ public class TestStrategy {
             p.dianPaoHuActionList.add(rp);
 
             for (String id : gameIds) {
-                matrix.loadFromDatabase(id,1);
+                matrix.loadFromDatabase(id, 1);
                 matrix.play();
             }
             matrix.printJingE();
@@ -297,8 +330,8 @@ public class TestStrategy {
      */
     @Test
     public void testRenPao_byKanPai() {
-        for(int i=1;i<10;i++) {
-            System.out.println("胡牌张数值:"+i);
+        for (int i = 1; i < 10; i++) {
+            System.out.println("胡牌张数值:" + i);
             List<Document> docs = dataForBasicAction.aggregate(
                     Arrays.asList(
                             Aggregates.match(Filters.and(
@@ -326,7 +359,7 @@ public class TestStrategy {
                 if (matrix.players.get(2).numberOfKanPai() > 0) matrix.play();
             }
             matrix.printJingE();
-            float jingE1=matrix.players.get(2).jinE;
+            float jingE1 = matrix.players.get(2).jinE;
             matrix.resetJinE();
             System.out.println("---------------------------------");
 
@@ -342,8 +375,8 @@ public class TestStrategy {
                 if (matrix.players.get(2).numberOfKanPai() > 0) matrix.play();
             }
             matrix.printJingE();
-            float jingE2=matrix.players.get(2).jinE;
-            System.out.println("提升率:"+(jingE2-jingE1)/jingE1);
+            float jingE2 = matrix.players.get(2).jinE;
+            System.out.println("提升率:" + (jingE2 - jingE1) / jingE1);
         }
     }
 
@@ -363,105 +396,337 @@ public class TestStrategy {
         matrix.printJingE();
     }
 
+    /**
+     * 生成牌型1的测试数据
+     * {@link TestStrategy#testPaiXing1()}
+     */
     @Test
     public void genPaiXing1() {
-        Matrix.memoryDb=new ArrayList<>();
+        Matrix.memoryDb = new ArrayList<>();
         Matrix matrix = new Matrix();
         matrix.init();
-        matrix.savetodb=true;
+        matrix.savetodb = true;
         matrix.createQingYiSeAction();
-        while (true){
+        int counter = 0;
+        while (true) {
+            counter++;
+            if (counter > 300) {
+                counter = 0;
+                System.out.println(Matrix.memoryDb.size());
+            }
             matrix.reset();
             matrix.play();
-            if (Matrix.memoryDb.size()>100000) break;
+            if (Matrix.memoryDb.size() > 50000) break;
         }
         database.getCollection("paixing1").insertMany(Matrix.memoryDb);
     }
 
     @Test
-    public void genPlayer3XiaJiao() {
-        Matrix.memoryDb=new ArrayList<>();
+    public void genKuanChuang() {
+        Matrix.memoryDb = new ArrayList<>();
         Matrix matrix = new Matrix();
         matrix.init();
-        matrix.savetodb=true;
+        matrix.savetodb = true;
         matrix.createQingYiSeAction();
-        int counter=0;
-        while (true){
+        int counter = 0;
+        while (true) {
             counter++;
-            if (counter>300){
-                counter=0;
+            if (counter > 1000) {
+                counter = 0;
                 System.out.println(Matrix.memoryDb.size());
             }
             matrix.reset();
             matrix.play();
-            if (Matrix.memoryDb.size()>1000000) break;
+            if (Matrix.memoryDb.size() > 100000) break;
         }
-        database.getCollection("player3XiaJiao").insertMany(Matrix.memoryDb);
+        database.getCollection("kuanChuang").insertMany(Matrix.memoryDb);
     }
 
     @Test
-    public void playNormalAndRenPao(){
-        var query1=new Document("player3_jinE_normal",new BasicDBObject("$exists",false));
+    public void genKuanChuangXiaJiao() {
+        //AtomicReference<Document> currentDoc=null;
+        //var kuan
+        MongoCollection<Document> kuanChuangXiaJiaoCollection =
+                database.getCollection("kuanChuangXiaJiao");
+        BiConsumer<Matrix, Document> callback = (matrix, doc) -> {
+            int xjzs = matrix.players.get(2).xiaJiaoZhangSu();
+            if (xjzs > 0 && matrix.players.get(2).status == Status.Playing) {
+                kuanChuangXiaJiaoCollection.insertOne(doc);
+                matrix.players.forEach(p -> p.status = Status.Hu);
+            }
+        };
+        Matrix matrix = new Matrix();
+        matrix.saveStatusConsumer = callback;
+        matrix.init();
+        matrix.savetodb = true;
+        matrix.createQingYiSeAction();
+        matrix.reset();
+        AtomicInteger total = new AtomicInteger();
+        AtomicInteger counter = new AtomicInteger();
+        List<Document> docs = kuanChuangCollection.find(new Document()).into(new ArrayList<>());
+        System.out.println("total size:" + docs.size());
+        docs.forEach(document -> {
+            total.getAndIncrement();
+            counter.getAndIncrement();
+            if (counter.get() > 300) {
+                counter.set(0);
+                System.out.println("total:" + total.get());
+            }
+            matrix.loadFromDocument(document);
+            matrix.play();
+        });
+    }
+
+    @Test
+    public void loadOneGame() {
+        //Document query =new Document("gameId","fdbbe63e-20ab-4c39-b8bd-110641abbbfc");
+        Document query = new Document("_id", new ObjectId("6218666c19c2fd5c10d0df54"));
+        Document document = player3XiajaoCollection.find(query).first();
+        Matrix matrix = new Matrix();
+        //matrix.savetodb=true;
+//        matrix.saveStatusConsumer=(matrix1, doc) -> {
+//            int xjzs=matrix1.players.get(2).xiaJiaoZhangSu();
+//            if (xjzs>0) {
+//                System.out.println(xjzs);
+//                matrix1.print();
+//            }
+//        };
+        matrix.init();
+        matrix.jiZhang.settleConsumer = result -> {
+            System.out.println(result);
+        };
+        matrix.createQingYiSeAction();
+        matrix.reset();
+        matrix.loadFromDocument(document);
+        matrix.play();
+        //matrix.print();
+        matrix.printJingE();
+    }
+
+    //region player3XiaJiao
+    @Test
+    public void genPlayer3XiaJiao() {
+        BiConsumer<Matrix, Document> callback = (matrix, doc) -> {
+            int xjzs = matrix.players.get(2).xiaJiaoZhangSu();
+            if (xjzs > 0 && matrix.players.get(2).status == Status.Playing) {
+                doc.put("matrix_cards_size", matrix.cards.size());
+                player3XiajaoCollection.insertOne(doc);
+                //Matrix.memoryDb.add(doc);
+                matrix.players.forEach(p -> p.status = Status.Hu);
+            }
+        };
+        //Matrix.memoryDb=new ArrayList<>();
+        Matrix matrix = new Matrix();
+        matrix.init();
+        matrix.savetodb = true;
+        matrix.saveStatusConsumer = callback;
+        matrix.createQingYiSeAction();
+        int counter = 0;
+        long total = 0;
+        while (true) {
+            counter++;
+            total++;
+            if (total > 3000000) break;
+            if (counter > 1000) {
+                counter = 0;
+                System.out.println(total);
+            }
+            matrix.reset();
+            matrix.play();
+            //if (Matrix.memoryDb.size()>100000) break;
+        }
+        //player3XiajaoCollection.insertMany(Matrix.memoryDb);
+//        System.out.println("playNormalAndRenPao");
+//        playNormalAndRenPao();
+    }
+
+    @Test
+    public void playNormal() {
+        AtomicLong counter = new AtomicLong();
+        AtomicLong total = new AtomicLong();
+        var query1 = new Document("player3_jinE_normal", new BasicDBObject("$exists", false));
         Matrix matrix = new Matrix();
         matrix.init();
         matrix.reset();
         matrix.createQingYiSeAction();
-        var player3XiajaoCollection=database.getCollection("player3XiaJiao");
         player3XiajaoCollection.find(query1)
                 .forEach(doc -> {
-            var id=doc.get("_id").toString();
-            matrix.loadFromDocument(doc);
-            matrix.resetJinE();
-            matrix.play();
-            Document query = new Document("_id",new ObjectId(id));
-            Bson updates=Updates.set("player3_jinE_normal",matrix.players.get(2).jinE);
-            player3XiajaoCollection.updateOne(query,updates);
-        });
+                    var id = doc.get("_id").toString();
+                    matrix.loadFromDocument(doc);
+                    matrix.resetJinE();
+                    matrix.play();
+                    Document query = new Document("_id", new ObjectId(id));
+                    Bson updates = Updates.set("player3_jinE_normal", matrix.players.get(2).jinE);
+                    player3XiajaoCollection.updateOne(query, updates);
+                    total.getAndIncrement();
+                    if (counter.getAndIncrement() > 1000) {
+                        counter.set(0);
+                        System.out.println(total.get());
+                    }
+                });
+
+    }
+
+    @Test
+    public void playRenPao() {
+        AtomicLong counter = new AtomicLong();
+        AtomicLong total = new AtomicLong();
+        var query1 = new Document("player3_jinE_renpao", new BasicDBObject("$exists", false));
+        //new Document("activePlayerNumber",4);
+        //new Document("player3_jinE_normal",new BasicDBObject("$exists",false));
+        //query1.put("player3_jinE_normal",new BasicDBObject("$exists",false));
+        Matrix matrix = new Matrix();
+        matrix.init();
+        matrix.reset();
+        matrix.createQingYiSeAction();
+//        player3XiajaoCollection.find(query1)
+//                .forEach(doc -> {
+//            var id=doc.get("_id").toString();
+//            matrix.loadFromDocument(doc);
+//            matrix.resetJinE();
+//            matrix.play();
+//            Document query = new Document("_id",new ObjectId(id));
+//            Bson updates=Updates.set("player3_jinE_normal",matrix.players.get(2).jinE);
+//            player3XiajaoCollection.updateOne(query,updates);
+//            total.getAndIncrement();
+//            if (counter.getAndIncrement()>1000){
+//                counter.set(0);
+//                System.out.println(total.get());
+//            }
+//        });
 
         matrix.players.get(2).dianPaoHuActionList.clear();
         matrix.players.get(2).dianPaoHuActionList.add(new RenPaoAction_Simple());
         player3XiajaoCollection.find(query1)
                 .forEach(doc -> {
-            var id=doc.get("_id").toString();
-            matrix.loadFromDocument(doc);
-            matrix.resetJinE();
-            matrix.play();
-            Document query = new Document("_id",new ObjectId(id));
-            Bson updates=Updates.set("player3_jinE_renpao",matrix.players.get(2).jinE);
-            player3XiajaoCollection.updateOne(query,updates);
-        });
+                    var id = doc.get("_id").toString();
+                    matrix.loadFromDocument(doc);
+                    matrix.resetJinE();
+                    matrix.play();
+                    Document query = new Document("_id", new ObjectId(id));
+                    Bson updates = Updates.set("player3_jinE_renpao", matrix.players.get(2).jinE);
+                    player3XiajaoCollection.updateOne(query, updates);
+                    total.getAndIncrement();
+                    if (counter.getAndIncrement() > 1000) {
+                        counter.set(0);
+                        System.out.println(total.get());
+                    }
+                });
 
     }
 
     @Test
-    public void viewPlayer3XiaoJiao(){
-        var player3XiaJiaoCollection = database.getCollection("player3XiaJiao");
-        for (int i=1;i<20;i++) {
-            System.out.println("下叫张数:"+i);
-            long l = player3XiaJiaoCollection.countDocuments(Filters.eq("player3.xiaJiaoZhangSu", i));
+    public void genShangBanCangFlag() {
+        Document query = new Document("matrix_cards_size",new BasicDBObject("$lt",35));
+        Bson updates=Updates.set("ShangBanChang",false);
+        player3XiajaoCollection.updateMany(query,updates);
+
+        query = new Document("matrix_cards_size",new BasicDBObject("$gte",35));
+        updates=Updates.set("ShangBanChang",true);
+        player3XiajaoCollection.updateMany(query,updates);
+        //player3_jinE_normal player3_jinE_renpao
+        //var query1 = new Document("player3_jinE_normal", new BasicDBObject("$exists", false));
+        //query1.put("activePlayerNumber", 4);
+        //query1.put("player3_jinE_renpao",new BasicDBObject("$exists",false));
+        //System.out.println(player3XiajaoCollection.countDocuments(query1));
+//        player3XiajaoCollection.find(query1).limit(1).forEach(document -> {
+//            System.out.println(document);
+//        });
+    }
+
+    /**
+     * @see #testRenPao2()
+     */
+    @Test
+    public void genRenPaoYuZiData() {
+        AtomicLong counter = new AtomicLong();
+        AtomicLong total = new AtomicLong();
+        var query1 = new Document("activePlayerNumber", 3);
+        Matrix matrix = new Matrix();
+        matrix.init();
+        matrix.reset();
+        matrix.createQingYiSeAction();
+        Player p = matrix.players.get(2);
+        p.dianPaoHuActionList.clear();
+        RenPaoAction_ByXiaJiaoZhangShu renPaoAction = new RenPaoAction_ByXiaJiaoZhangShu();
+        p.dianPaoHuActionList.add(renPaoAction);
+        player3XiajaoCollection.find(query1).forEach(doc -> {
+            for (int n = 1; n < 11; n++) {
+                renPaoAction.xjzs_threshold = n;
+                var id = doc.get("_id").toString();
+                matrix.loadFromDocument(doc);
+                matrix.resetJinE();
+                matrix.play();
+                Document query = new Document("_id", new ObjectId(id));
+                Bson updates = Updates.set("renpao_threshold_" + n, matrix.players.get(2).jinE);
+                player3XiajaoCollection.updateOne(query, updates);
+            }
+            total.getAndIncrement();
+            if (counter.getAndIncrement() > 1000) {
+                counter.set(0);
+                System.out.println(total.get());
+            }
+        });
+    }
+
+    @Test
+    public void genFan() {
+        AtomicLong counter = new AtomicLong();
+        AtomicLong total = new AtomicLong();
+        var query1 = new Document("activePlayerNumber", 2);
+        Matrix matrix = new Matrix();
+        matrix.init();
+        matrix.reset();
+        matrix.createQingYiSeAction();
+        Player p = matrix.players.get(2);
+        p.dianPaoHuActionList.clear();
+        RenPaoAction_ByXiaJiaoZhangShu renPaoAction = new RenPaoAction_ByXiaJiaoZhangShu();
+        p.dianPaoHuActionList.add(renPaoAction);
+        player3XiajaoCollection.find(query1).forEach(doc -> {
+            var id = doc.get("_id").toString();
+            matrix.loadFromDocument(doc);
+            int fan = p.getMaxFan();
+            Document query = new Document("_id", new ObjectId(id));
+            Bson updates = Updates.set("player3_fan", fan);
+            player3XiajaoCollection.updateOne(query, updates);
+            total.getAndIncrement();
+            if (counter.getAndIncrement() > 1000) {
+                counter.set(0);
+                System.out.println(total.get());
+            }
+        });
+    }
+
+    @Test
+    public void viewPlayer3XiaoJiao() {
+        for (int i = 1; i < 20; i++) {
+            System.out.println("下叫张数:" + i);
+            long l = player3XiajaoCollection.countDocuments(Filters.eq("player3.xiaJiaoZhangSu", i));
             System.out.println(l);
         }
     }
 
+    //endregion
+
     @Test
     public void genQys() {
-        Matrix.memoryDb=new ArrayList<>();
+        Matrix.memoryDb = new ArrayList<>();
         Matrix matrix = new Matrix();
         matrix.init();
-        matrix.players.get(2).threshold_duanzhang=5;
-        matrix.players.get(2).threshold_mopaicishu=5;
-        matrix.savetodb=true;
+        matrix.players.get(2).threshold_duanzhang = 5;
+        matrix.players.get(2).threshold_mopaicishu = 5;
+        matrix.savetodb = true;
         matrix.createQingYiSeAction();
-        int counter=0;
-        while (true){
+        int counter = 0;
+        while (true) {
             counter++;
-            if (counter>300){
-                counter=0;
+            if (counter > 300) {
+                counter = 0;
                 System.out.println(Matrix.memoryDb.size());
             }
             matrix.reset();
             matrix.play();
-            if (Matrix.memoryDb.size()>200000) break;
+            if (Matrix.memoryDb.size() > 200000) break;
         }
         database.getCollection("qingyise").insertMany(Matrix.memoryDb);
     }
@@ -470,20 +735,20 @@ public class TestStrategy {
      * 清一色阈值2和3的比较
      */
     @Test
-    public void twoVsTree(){
-        Matrix matrix=new Matrix();
+    public void twoVsTree() {
+        Matrix matrix = new Matrix();
         //matrix.showDetail=true;
         matrix.init();
         matrix.createQingYiSeAction();
-        matrix.players.forEach(player -> player.threshold_duanzhang=3);
-        for (int i=0;i<100000;i++) {
+        matrix.players.forEach(player -> player.threshold_duanzhang = 3);
+        for (int i = 0; i < 100000; i++) {
             matrix.reset();
             matrix.play();
         }
         matrix.printJingE();
         matrix.resetJinE();
-        matrix.players.get(2).threshold_duanzhang=2;
-        for (int i=0;i<100000;i++) {
+        matrix.players.get(2).threshold_duanzhang = 2;
+        for (int i = 0; i < 100000; i++) {
             matrix.reset();
             matrix.play();
         }
@@ -586,13 +851,13 @@ public class TestStrategy {
         matrix.createQingYiSeAction();
         matrix.reset();
         for (int dingQueSu = 0; dingQueSu < 3; dingQueSu++) {
-            System.out.println("定缺数:"+dingQueSu);
+            System.out.println("定缺数:" + dingQueSu);
             List<Document> docs = qysCollection.find(new Document("dingQueSu", dingQueSu))
                     .limit(50000)
                     .into(new ArrayList<>());
 
-            for(int dzs=2;dzs<3;dzs++) {
-                System.out.println("短张阈值:"+dzs);
+            for (int dzs = 2; dzs < 3; dzs++) {
+                System.out.println("短张阈值:" + dzs);
                 matrix.players.get(2).threshold_duanzhang = dzs;
                 matrix.resetJinE();
                 for (Document doc : docs) {
@@ -604,30 +869,39 @@ public class TestStrategy {
         }
     }
 
+    // TODO: 2022/3/4 研究短张为3是否碰牌
+
     /**
      * 短张为3是否碰牌
      */
     @Test
-    public void duanZhangPengPai(){
-        Matrix matrix=new Matrix();
+    public void duanZhangPengPai() {
+        Matrix matrix = new Matrix();
         matrix.init();
         matrix.createQingYiSeAction();
         matrix.reset();
-        Player player3=matrix.players.get(2);
-        player3.cards= MaJiangDef.stringToCards("5筒,5筒,8筒,1万,1万,2万,3万,3万,5万,7万,8万,8万,9万");
-        player3.dingQue=HuaShe.TIAO;
-        ActionResult result= player3.pengGang(MaJiangDef.stringToCard("5筒"));
-        Assert.assertEquals(ResultCode.Peng,result.code);
+        Player player3 = matrix.players.get(2);
+        player3.cards = MaJiangDef.stringToCards("5筒,5筒,8筒,1万,1万,2万,3万,3万,5万,7万,8万,8万,9万");
+        player3.dingQue = HuaShe.TIAO;
+        ActionResult result = player3.pengGang(MaJiangDef.stringToCard("5筒"));
+        Assert.assertEquals(ResultCode.Peng, result.code);
     }
 
+    /**
+     * 牌型1的打法
+     * {@link Matrix#saveStatus(ActionResult)}
+     *
+     * @see #genPaiXing1()
+     * @see com.guci.MaJiangGame.special.LiangDuiDianPaoHuAction#go(int, Player)
+     */
     @Test
-    public void testPaiXing1(){
-        List<Document> paiXing1Docs= paiXing1Collection.find(new Document()).into(new ArrayList<>());
-        Matrix matrix=new Matrix();
+    public void testPaiXing1() {
+        List<Document> paiXing1Docs = paiXing1Collection.find(new Document()).into(new ArrayList<>());
+        Matrix matrix = new Matrix();
         matrix.init();
         matrix.createQingYiSeAction();
         matrix.reset();
-        for(Document doc :paiXing1Docs){
+        for (Document doc : paiXing1Docs) {
             matrix.loadFromDocument(doc);
             matrix.play();
         }

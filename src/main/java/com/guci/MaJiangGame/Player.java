@@ -27,7 +27,25 @@ public class Player {
      */
     public int threshold_duanzhang =2;
 
+    /**
+     * 摸牌次数阈值
+     */
     public int threshold_mopaicishu=4;
+
+    /**
+     * 牌的最大翻数
+     * @return
+     */
+    public int getMaxFan(){
+        List<Integer>gui=new ArrayList<>();
+        List<Integer> tingPais=HuUtil.isTingExtra(cards, gui);
+        int maxFan=0;
+        for (Integer tingpai : tingPais){
+            int fan=matrix.jiZhang.jiFan(this,tingpai);
+            if (fan>maxFan) maxFan=fan;
+        }
+        return maxFan;
+    }
 
     @Override
     public java.lang.String toString() {

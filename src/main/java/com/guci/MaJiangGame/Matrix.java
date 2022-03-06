@@ -14,6 +14,7 @@ import org.bson.types.ObjectId;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -28,6 +29,7 @@ public class Matrix {
     public boolean savetodb = false;
     public String gameId;
     int actionIndex = 1;
+    public BiConsumer<Matrix,Document> saveStatusConsumer=null;
     //boolean stop=false;
     /**
      * 未显的牌
@@ -98,7 +100,8 @@ public class Matrix {
     public void loadFromDocument(Document document) {
         cards = MaJiangDef.stringToCards(document.getString("matrix_cards"));
         cardsOnTable = MaJiangDef.stringToCards(document.getString("matrix_cardsOnTable"));
-
+        gameId=document.getString("gameId");
+        statusHistory.clear();
         BiConsumer<Document, Integer> loadPlayers = (document1, index) -> {
             int id = index + 1;
             String s = document1.get("player" + id, Document.class).getString("cards");
@@ -243,9 +246,24 @@ public class Matrix {
         document.put("activePlayerNumber", players.stream().filter(p -> p.status == Status.Playing).count());
         statusHistory.add(document);
         //保存特殊牌型
-        savePaiXing1(document);
+        if (saveStatusConsumer !=null) saveStatusConsumer.accept(this,document);
+        //saveKuanChuang(document);
+        //savePaiXing1(document);
         //saveQysPaiXing(document);
         //savePlayer3XiaJiao(document);
+    }
+
+    private void saveKuanChuang(Document document){
+        boolean isKuanChuang=false;
+        Player player3=players.get(2);
+        List<Player> temp=new ArrayList<>(players);
+        temp.remove(player3);
+        if (temp.stream().allMatch(p->p.dingQue==HuaShe.TIAO) && (player3.dingQue != HuaShe.TIAO)) isKuanChuang=true;
+        if (temp.stream().allMatch(p->p.dingQue==HuaShe.WAN) && (player3.dingQue != HuaShe.WAN)) isKuanChuang=true;
+        if (temp.stream().allMatch(p->p.dingQue==HuaShe.TONG) && (player3.dingQue != HuaShe.TONG)) isKuanChuang=true;
+        if (isKuanChuang) memoryDb.add(document);
+        //结束游戏
+        for (Player p:players) p.status=Status.Hu;
     }
 
     private void savePlayer3XiaJiao(Document document){

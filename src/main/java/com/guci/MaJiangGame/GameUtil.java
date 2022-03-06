@@ -116,4 +116,31 @@ public class GameUtil {
         }
         return true;
     }
+
+    /**
+     * 是否手上是两对牌
+     * @param cards
+     * @return
+     */
+    public static boolean isLiangDui(List<Integer> cards){
+        Map<Integer,Long> map1=cards.stream().collect(Collectors.groupingBy(x->x,Collectors.counting()));
+        if (map1.size() != 2) return false;
+        return map1.values().stream().allMatch(x->x==2);
+    }
+
+    public static boolean zhongZhang(List<Integer> cards){
+        long n=cards.stream().filter(x->x==MaJiangDef.WAN1).count();
+        if (n>0) return false;
+        n=cards.stream().filter(x->x==MaJiangDef.WAN9).count();
+        if (n>0) return false;
+        n=cards.stream().filter(x->x==MaJiangDef.TIAO1).count();
+        if (n>0) return false;
+        n=cards.stream().filter(x->x==MaJiangDef.TIAO9).count();
+        if (n>0) return false;
+        n=cards.stream().filter(x->x==MaJiangDef.TONG1).count();
+        if (n>0) return false;
+        n=cards.stream().filter(x->x==MaJiangDef.TONG9).count();
+        if (n>0) return false;
+        return true;
+    }
 }

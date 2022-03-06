@@ -5,6 +5,7 @@ import com.github.esrrhs.majiang_algorithm.HuUtil;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 import com.guci.MaJiangGame.*;
 import com.guci.MaJiangGame.QingYiSe.QingYiSheMoPaiAction;
+import com.guci.MaJiangGame.special.LiangDuiDianPaoHuAction;
 import com.mongodb.client.*;
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -529,7 +530,7 @@ public class TestMatrix {
         //matrix.printJingE();
     }
 
-    @Test
+    //@Test
     public void genDatabase(){
         int total=0;
         Matrix matrix=new Matrix();
@@ -600,18 +601,18 @@ public class TestMatrix {
         matrix.step();
 
         Assert.assertEquals(Status.Hu,matrix.players.get(0).status);
-        Assert.assertEquals(12,matrix.players.get(0).jinE);
-        Assert.assertEquals(-4,matrix.players.get(1).jinE);
-        Assert.assertEquals(-4,matrix.players.get(2).jinE);
-        Assert.assertEquals(-4,matrix.players.get(3).jinE);
+        Assert.assertEquals(24,matrix.players.get(0).jinE);
+        Assert.assertEquals(-8,matrix.players.get(1).jinE);
+        Assert.assertEquals(-8,matrix.players.get(2).jinE);
+        Assert.assertEquals(-8,matrix.players.get(3).jinE);
         Assert.assertTrue(matrix.currentPlayer==matrix.players.get(1));
 
         matrix.step();
 
         Assert.assertEquals(Status.Hu,matrix.players.get(2).status);
         Assert.assertTrue(matrix.currentPlayer==matrix.players.get(2));
-        Assert.assertEquals(-8,matrix.players.get(1).jinE);
-        Assert.assertEquals(0,matrix.players.get(2).jinE);
+        Assert.assertEquals(-24,matrix.players.get(1).jinE);
+        Assert.assertEquals(8,matrix.players.get(2).jinE);
         //System.out.println(matrix.currentPlayer.id);
     }
 
@@ -736,5 +737,26 @@ public class TestMatrix {
         player3.dingQue=HuaShe.TIAO;
         List<Integer> duanZhang= player3.getDuanZhang();
         System.out.println(MaJiangDef.cardsToString(duanZhang).contains("3条"));
+    }
+
+    //@Test
+    public void testLiangDuiDianPaoHuAction(){
+        Matrix matrix=new Matrix();
+        matrix.init();
+        matrix.createQingYiSeAction();
+        matrix.reset();
+        Player player2=matrix.players.get(1);
+        player2.cards=MaJiangDef.stringToCards("1筒");
+        player2.dingQue=HuaShe.WAN;
+
+        Player player3=matrix.players.get(2);
+        player3.dianPaoHuActionList.add(0,new LiangDuiDianPaoHuAction());
+        player3.cards=MaJiangDef.stringToCards("1万,1万,1筒,1筒");
+        player3.dingQue=HuaShe.TIAO;
+
+        matrix.cards.add(0,MaJiangDef.stringToCard("1万"));
+        matrix.currentPlayer=player2;
+        matrix.step();
+        System.out.println(MaJiangDef.cardsToString(player3.cards));
     }
 }

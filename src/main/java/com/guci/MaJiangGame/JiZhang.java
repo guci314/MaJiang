@@ -3,6 +3,7 @@ package com.guci.MaJiangGame;
 import com.github.esrrhs.majiang_algorithm.MaJiangDef;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -10,10 +11,12 @@ import java.util.stream.Collectors;
  */
 public class JiZhang {
     Matrix matrix;
+    public Consumer<ActionResult> settleConsumer=null;
     /**
      * 结账
      */
     void settle(ActionResult result){
+        if (settleConsumer != null) settleConsumer.accept(result);
         if (result.code==ResultCode.ZiMo){
             //System.out.println("自摸 player"+result.to.id);
             int fan=jiFan(result.to, result.out);
@@ -111,7 +114,8 @@ public class JiZhang {
         if (GameUtil.isQiDui(all)) fan=fan+2;
         //门清
         if (p.cardsOnTable.size()==0) fan++;
-
+        // TODO: 2022/3/5 添加卡心五
+        // TODO: 2022/3/5 添加中张
         if (fan >5) fan=5;
         return fan;
     }
